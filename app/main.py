@@ -7,6 +7,7 @@ from app.api.v1.router import v1_router
 from app.config import settings
 from app.database_registry import init_database_engine
 from app.dto.base import HealthCheckDTO, SuccessResponse
+from app.exception_handler import register_exception_handlers
 
 
 @asynccontextmanager
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Kestrel Backend API Documentation", version="1.0.0", lifespan=lifespan)
+register_exception_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.FRONTEND_URL_LIST,

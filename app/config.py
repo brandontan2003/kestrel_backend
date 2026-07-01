@@ -20,6 +20,8 @@ class Settings(BaseSettings):
         urls = [item.strip() for item in self.FRONTEND_URL.split(",") if item.strip()]
         return urls if urls else [""]
 
+    LOGGING_LEVEL: str = "INFO"
+    
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / f".env.{env}",
         extra="ignore",
