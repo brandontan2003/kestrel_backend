@@ -1,0 +1,45 @@
+services:
+  kestrel-backend-service:
+    init: true
+    build:
+      dockerfile: ./Dockerfile
+    image: kestrel-backend-image:latest
+    container_name: kestrel_backend_service
+    env_file:
+      - .env.dev
+    ports:
+      - '8000:8000'
+    restart: on-failure
+    depends_on:
+      kestrel-flyway:
+        condition: service_completed_successfully
+
+  kestrel-flyway:
+    init: true
+    image: flyway/flyway:12.7.0
+    container_name: kestrel-flyway
+    env_file:
+      - .env.dev
+    volumes:
+      - ./db_migration:/flyway/sql
+    entrypoint: ["flyway", "migrate"]
+    depends_on:
+      - kestrel-postgres
+    restart: on-failure
+
+  kestrel-postgres:
+    image: postgres:17
+    container_name: kestrel-postgres
+    env_file:
+      - .env.dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
+networks:
+  default:
+    name: kestrel-network
