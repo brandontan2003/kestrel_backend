@@ -13,7 +13,13 @@ def init_database_engine(database_url: str):
 
     _engine = create_async_engine(
         database_url,
-        connect_args={"statement_cache_size": 0},
+        connect_args={
+            "statement_cache_size": 0,
+            "server_settings": {
+                "search_path": "appdb"
+            }
+        },
+
     )
 
     _sessionmaker = async_sessionmaker(

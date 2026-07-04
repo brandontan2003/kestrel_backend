@@ -1,10 +1,11 @@
 from sqlalchemy import Column, DateTime
-from sqlalchemy.sql import func
 from sqlalchemy.orm import declared_attr
+from sqlalchemy.sql import func
+
 
 class Auditable:
     """Automatically adds created_at and updated_at to any model."""
-    
+
     @declared_attr
     def created_at(cls):
         # Generates timestamp on insert

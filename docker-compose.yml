@@ -22,7 +22,7 @@ services:
       - .env.dev
     volumes:
       - ./db_migration:/flyway/sql
-    entrypoint: ["flyway", "migrate"]
+    entrypoint: [ "flyway", "migrate" ]
     depends_on:
       - kestrel-postgres
     restart: on-failure

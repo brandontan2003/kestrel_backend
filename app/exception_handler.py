@@ -17,6 +17,41 @@ class BaseAppException(Exception):
         self.error_message = error_message
 
 
+class InvalidAuthTokenException(BaseAppException):
+    def __init__(self):
+        super().__init__(401, err.INVALID_TOKEN_ERROR.error_code, err.INVALID_TOKEN_ERROR.error_message)
+
+
+class InvalidUserException(BaseAppException):
+    def __init__(self):
+        super().__init__(401, err.INVALID_USER_ERROR.error_code, err.INVALID_USER_ERROR.error_message)
+
+
+class InvalidCredentialsException(BaseAppException):
+    def __init__(self):
+        super().__init__(401, err.INVALID_CREDENTIALS_ERROR.error_code, err.INVALID_CREDENTIALS_ERROR.error_message)
+
+
+class EmailAlreadyExistsException(BaseAppException):
+    def __init__(self):
+        super().__init__(400, err.EMAIL_ALREADY_EXISTS.error_code, err.EMAIL_ALREADY_EXISTS.error_message)
+
+
+class UserNotFoundException(BaseAppException):
+    def __init__(self):
+        super().__init__(404, err.USER_NOT_FOUND.error_code, err.USER_NOT_FOUND.error_message)
+
+
+class RegistrationErrorException(BaseAppException):
+    def __init__(self):
+        super().__init__(500, err.USER_REGISTRATION_FAILED.error_code, err.USER_REGISTRATION_FAILED.error_message)
+
+
+class LoginErrorException(BaseAppException):
+    def __init__(self):
+        super().__init__(500, err.USER_LOGIN_FAILED.error_code, err.USER_LOGIN_FAILED.error_message)
+
+
 class CommonException(BaseAppException):
     pass
 

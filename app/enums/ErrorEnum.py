@@ -9,6 +9,15 @@ class ErrorEnum(enum.Enum):
     FORBIDDEN = ("FORBIDDEN", "FORBIDDEN")
     HTTP_ERROR = ("HTTP_ERROR", "HTTP ERROR")
 
+    # Auth specific
+    INVALID_TOKEN_ERROR = ("INVALID_TOKEN_ERROR", "Invalid or expired token")
+    INVALID_USER_ERROR = ("INVALID_USER_ERROR", "User not found or inactive")
+    EMAIL_ALREADY_EXISTS = ("EMAIL_ALREADY_EXISTS", "An account with this email already exists")
+    INVALID_CREDENTIALS_ERROR = ("INVALID_CREDENTIALS_ERROR", "Invalid email or password")
+    USER_REGISTRATION_FAILED = ("USER_REGISTRATION_FAILED", "Registration failed. Please try again.")
+    USER_LOGIN_FAILED = ("USER_LOGIN_FAILED", "Login failed. Please try again.")
+    USER_NOT_FOUND = ("USER_NOT_FOUND", "User not found.")
+
     @property
     def error_code(self) -> str:
         return self.value[0]
