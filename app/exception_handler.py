@@ -37,19 +37,9 @@ class EmailAlreadyExistsException(BaseAppException):
         super().__init__(400, err.EMAIL_ALREADY_EXISTS.error_code, err.EMAIL_ALREADY_EXISTS.error_message)
 
 
-class UserNotFoundException(BaseAppException):
-    def __init__(self):
-        super().__init__(404, err.USER_NOT_FOUND.error_code, err.USER_NOT_FOUND.error_message)
-
-
 class RegistrationErrorException(BaseAppException):
     def __init__(self):
         super().__init__(500, err.USER_REGISTRATION_FAILED.error_code, err.USER_REGISTRATION_FAILED.error_message)
-
-
-class LoginErrorException(BaseAppException):
-    def __init__(self):
-        super().__init__(500, err.USER_LOGIN_FAILED.error_code, err.USER_LOGIN_FAILED.error_message)
 
 
 class CommonException(BaseAppException):

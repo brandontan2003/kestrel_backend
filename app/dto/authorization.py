@@ -28,8 +28,9 @@ class LoginRequest(BaseDTO):
     password: str
 
 
-class AccessTokenResponse(BaseDTO):
+class AuthResponse(BaseDTO):
     access_token: str
+    expires_in: int
     token_type: str = "bearer"
 
 
