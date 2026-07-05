@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS tbl_users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   CONSTRAINT users_pkey PRIMARY KEY (user_id)
-
 );
 
 
