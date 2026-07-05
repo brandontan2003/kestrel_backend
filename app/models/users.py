@@ -26,6 +26,5 @@ class User(Base, Auditable):
     user_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, nullable=False)
     username = Column(String, nullable=False)
-    user_status = Column(String(10), default=UserStatusEnum.ACTIVE, server_default=UserStatusEnum.ACTIVE,
-                         nullable=False)
+    user_status = Column(String(10), default=UserStatusEnum.ACTIVE, nullable=False)
     password_hash = Column(String, nullable=False)
