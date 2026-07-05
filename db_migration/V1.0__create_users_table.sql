@@ -23,5 +23,5 @@ CREATE TABLE IF NOT EXISTS tbl_users_history (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   CONSTRAINT users_history_pkey PRIMARY KEY (user_history_id),
-  CONSTRAINT user_id_fkey FOREIGN KEY (user_id) REFERENCES tbl_users(user_id)
+  CONSTRAINT user_fkey FOREIGN KEY (user_id) REFERENCES tbl_users(user_id)
 );
