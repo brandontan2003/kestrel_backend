@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS tbl_theses_proposals (
   llm_confidence DECIMAL(4, 3),
 
   source_article_url TEXT,
-  source_evaluation_id VARCHAR(36),
+  source_evaluation_id VARCHAR(36) NOT NULL,
   theses_proposal_status VARCHAR(15) NOT NULL, -- pending | approved | rejected | superseded
   rejection_reason TEXT,
   resolved_at TIMESTAMP WITH TIME ZONE,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS tbl_theses_proposals_history (
   llm_confidence DECIMAL(4, 3),
 
   source_article_url TEXT,
-  source_evaluation_id VARCHAR(36),
+  source_evaluation_id VARCHAR(36) NOT NULL,
   theses_proposal_status VARCHAR(15) NOT NULL,
   rejection_reason TEXT,
   resolved_at TIMESTAMP WITH TIME ZONE,

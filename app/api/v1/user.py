@@ -11,4 +11,4 @@ router = APIRouter(prefix="/user", tags=["user"])
 
 @router.get("/me", response_model=DataResponse[UserProfileResponse])
 async def retrieve_current_user(current_user: User = Depends(get_current_user)):
-    return DataResponse(result= await build_user_response(current_user))
+    return DataResponse(result=await build_user_response(current_user))

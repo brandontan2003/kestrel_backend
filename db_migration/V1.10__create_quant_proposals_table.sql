@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS tbl_quant_proposals (
   llm_confidence DECIMAL(4, 3),
 
   source_article_url TEXT,
-  source_evaluation_id VARCHAR(36),
+  source_evaluation_id VARCHAR(36) NOT NULL,
 
   quant_proposal_status VARCHAR(15) NOT NULL, -- pending | approved | rejected | superseded
   rejection_reason TEXT,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS tbl_quant_proposals_history (
   llm_confidence DECIMAL(4, 3),
 
   source_article_url TEXT,
-  source_evaluation_id VARCHAR(36),
+  source_evaluation_id VARCHAR(36)  NOT NULL,
 
   quant_proposal_status VARCHAR(15) NOT NULL,
   rejection_reason TEXT,

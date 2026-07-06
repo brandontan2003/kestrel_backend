@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS tbl_quant_conditions (
   quant_condition_id VARCHAR(36) NOT NULL,
   theses_id VARCHAR(36) NOT NULL,
-  metric VARCHAR(36) NOT NULL,
+  metric VARCHAR NOT NULL,
   operator VARCHAR(2) NOT NULL,
   "value" DECIMAL NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS tbl_quant_conditions_history (
   quant_condition_history_id VARCHAR(36) NOT NULL,
   quant_condition_id VARCHAR(36) NOT NULL,
   theses_id VARCHAR(36) NOT NULL,
-  metric VARCHAR(36) NOT NULL,
+  metric VARCHAR NOT NULL,
   operator VARCHAR(2) NOT NULL,
   "value" DECIMAL NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT TRUE,

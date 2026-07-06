@@ -1,11 +1,13 @@
-
 from fastapi import Response
+
 from app.config import settings
 
 REFRESH_COOKIE_KEY = "refresh_token"
 ACCESS_COOKIE_KEY = "access_token"
-_COOKIE_PATH = "/api/v1"        # widened from /api/v1/auth so access cookie is
-                                 # sent to ALL protected endpoints, not just auth routes
+_COOKIE_PATH = "/api/v1"  # widened from /api/v1/auth so access cookie is
+
+
+# sent to ALL protected endpoints, not just auth routes
 
 
 def set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
@@ -37,7 +39,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         secure=settings.ENV != "dev",
         samesite="strict",
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
-        path=f"{_COOKIE_PATH}/auth",   # /api/v1/auth only
+        path=f"{_COOKIE_PATH}/auth",  # /api/v1/auth only
     )
 
 

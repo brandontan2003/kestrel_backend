@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS tbl_alerts_history (
   evaluation_id VARCHAR(36) NOT NULL,
   user_id VARCHAR(36) NOT NULL,
   channels_sent VARCHAR(10) NOT NULL,
-  alert_status VARCHAR(15) NOT NULL, -- NOT_SENT, SENT, IN_PROGRESS
+  alert_status VARCHAR(15) NOT NULL,
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),

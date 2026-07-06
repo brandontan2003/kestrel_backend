@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS tbl_evaluations (
   evaluation_id VARCHAR(36) NOT NULL,
   theses_id VARCHAR(36) NOT NULL,
-  state VARCHAR(15) NOT NULL,
+  evaluation_status VARCHAR(15) NOT NULL,
   prompt_version VARCHAR NOT NULL,
   results JSON,
   signal BOOLEAN NOT NULL DEFAULT TRUE,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS tbl_evaluations_history (
   evaluation_history_id VARCHAR(36) NOT NULL,
   evaluation_id VARCHAR(36) NOT NULL,
   theses_id VARCHAR(36) NOT NULL,
-  state VARCHAR(15) NOT NULL,
+  evaluation_status VARCHAR(15) NOT NULL,
   prompt_version VARCHAR NOT NULL,
   results JSON,
   signal BOOLEAN NOT NULL DEFAULT TRUE,
