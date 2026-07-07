@@ -41,6 +41,12 @@ class Theses(Base, Auditable):
         lazy=LAZY_SELECTIN
     )
 
+    stocks_mapping = relationship(
+        ModelName.STOCK,
+        back_populates="theses_mapping",
+        lazy=LAZY_SELECTIN
+    )
+
     quant_conditions_mapping = relationship(
         ModelName.QUANT_CONDITION,
         back_populates="theses_mapping",

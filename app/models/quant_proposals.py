@@ -17,8 +17,7 @@ class QuantProposalHistory(Base, Auditable):
     quant_proposal_id = Column(String(36), ForeignKey("tbl_quant_proposals.quant_proposal_id"), nullable=False)
 
     theses_id = Column(String(36), nullable=False)
-    catalyst_id = Column(String(36))
-    proposal_type = Column(String(36), nullable=False)
+    quant_condition_id = Column(String(36))
     proposed_change = Column(JSON, nullable=False)
 
     llm_rationale = Column(Text)
@@ -26,7 +25,7 @@ class QuantProposalHistory(Base, Auditable):
 
     source_article_url = Column(Text)
     source_evaluation_id = Column(String(36), nullable=False)
-    catalyst_proposal_status = Column(String(15), nullable=False)
+    quant_proposal_status = Column(String(15), nullable=False)
     rejection_reason = Column(Text)
     resolved_at = Column(DateTime(timezone=True))
 
@@ -46,7 +45,7 @@ class QuantProposal(Base, Auditable):
 
     source_article_url = Column(Text)
     source_evaluation_id = Column(String(36), ForeignKey("tbl_evaluations.evaluation_id"), nullable=False)
-    catalyst_proposal_status = Column(String(15), default=ProposalStatusEnum.PENDING, nullable=False)
+    quant_proposal_status = Column(String(15), default=ProposalStatusEnum.PENDING, nullable=False)
     rejection_reason = Column(Text)
     resolved_at = Column(DateTime(timezone=True))
 

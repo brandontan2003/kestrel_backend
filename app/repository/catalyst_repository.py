@@ -14,7 +14,7 @@ class CatalystRepository:
         objects = [
             Catalyst(
                 theses_id=theses_id,
-                state=cat.state.value,
+                state=cat.state,
                 description=cat.description,
                 evidence=cat.evidence,
             )

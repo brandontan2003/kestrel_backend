@@ -2,7 +2,7 @@
 
 from fastapi import Depends
 
-from app.dto.theses import CreateThesesRequest
+from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse
 from app.exception_handler import StockNotFoundException, ThesesFoundException
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
@@ -19,16 +19,18 @@ class ThesesService:
         self._quant_condition_repo = quant_condition_repo
         self._catalyst_repo = catalyst_repo
 
-    async def retrieve_theses_by_theses_id(self, theses_id: str) -> Theses:
+    async def retrieve_theses_by_theses_id(self, theses_id: str, user_id: str) -> RetrieveThesesResponse:
         theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
-        if theses is None:
+        if theses is None or theses.user_id != user_id:
             raise ThesesFoundException()
-        stock = await self._stock_repo.get_stock_by_ticker(theses.stock_id)
-        if stock is None:
-            raise StockNotFoundException()
-        return theses
+        return RetrieveThesesResponse(
+            **theses.__dict__,
+            ticker=theses.stocks_mapping.ticker,
+            quant_conditions=theses.quant_conditions_mapping,
+            catalysts=theses.catalyst_mapping
+            )
 
-    async def create_theses(self, user_id: str, request: CreateThesesRequest) -> Theses:
+    async def create_theses(self, user_id: str, request: CreateThesesRequest) -> RetrieveThesesResponse:
         stock = await self._stock_repo.get_stock_by_ticker(request.ticker)
         if stock is None:
             raise StockNotFoundException()
@@ -36,21 +38,22 @@ class ThesesService:
         theses = await self._theses_repo.create_theses(
             user_id=user_id,
             stock_id=stock.stock_id,
-            quant_mode=request.quant_mode.value,
-            catalyst_mode=request.catalyst_mode.value,
+            quant_mode=request.quant_mode,
+            catalyst_mode=request.catalyst_mode,
             notes=request.notes,
         )
 
+        theses_id = theses.theses_id
+
         quant_conditions = request.quant_conditions
         if quant_conditions:
-            await self._quant_condition_repo.bulk_create_quant_condition(theses_id=theses.theses_id,
-                                                                         quant_conditions=quant_conditions)
+            await self._quant_condition_repo.bulk_create_quant_condition(theses_id=theses_id, quant_conditions=quant_conditions)
 
         catalysts = request.catalysts
         if catalysts:
-            await self._catalyst_repo.bulk_create_catalysts(theses_id=theses.theses_id, catalysts=catalysts)
-
-        return await self.retrieve_theses_by_theses_id(theses.theses_id)
+            await self._catalyst_repo.bulk_create_catalysts(theses_id=theses_id, catalysts=catalysts)
+        
+        return await self.retrieve_theses_by_theses_id(theses_id, user_id)
 
 
 async def get_theses_service(
