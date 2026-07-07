@@ -16,6 +16,12 @@ class ErrorEnum(enum.Enum):
     INVALID_CREDENTIALS_ERROR = ("INVALID_CREDENTIALS_ERROR", "Invalid email or password")
     USER_REGISTRATION_FAILED = ("USER_REGISTRATION_FAILED", "Registration failed. Please try again.")
 
+    # Stock
+    STOCK_NOT_FOUND = ("STOCK_NOT_FOUND", "Stock does not exist or is not supported")
+
+    # Theses
+    THESES_NOT_FOUND = ("THESES_NOT_FOUND", "Theses not found")
+
     @property
     def error_code(self) -> str:
         return self.value[0]
