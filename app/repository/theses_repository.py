@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
+from app.dto.theses import UpdateThesesRequest
 from app.models import Theses
 
 
@@ -22,6 +23,28 @@ class ThesesRepository:
         self._db.add(theses)
         await self._db.flush()
         await self._db.refresh(theses)
+        return theses
+    
+    async def update_theses(self, theses: Theses, request: UpdateThesesRequest) -> Theses:
+        theses_status = request.theses_status
+        if theses_status is not None:
+            theses.theses_status = theses_status
+                
+        quant_mode = request.quant_mode
+        if quant_mode is not None:
+            theses.quant_mode = quant_mode
+        
+        catalyst_mode = request.catalyst_mode
+        if catalyst_mode is not None:
+            theses.catalyst_mode = catalyst_mode
+        
+        notes = request.notes
+        if notes is not None:
+            if notes == "<None>":
+                theses.notes = None
+            else:
+                theses.notes = notes
+        await self._db.flush()
         return theses
 
     async def get_theses_by_theses_id(self, theses_id) -> Theses:

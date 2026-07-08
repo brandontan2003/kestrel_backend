@@ -3,8 +3,8 @@
 from fastapi import Depends
 from app.core.logger import logger
 
-from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse, RetrieveAllThesesResponse
-from app.exception_handler import StockNotFoundException, ThesesFoundException
+from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest
+from app.exception_handler import StockNotFoundException, ThesesNotFoundException
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
@@ -22,6 +22,24 @@ class ThesesService:
         self._catalyst_repo = catalyst_repo
         self._evaluation_repo = evaluation_repo
     
+    async def update_theses_by_theses_id(self, theses_id: str, user_id: str, request: UpdateThesesRequest) -> RetrieveAllThesesResponse:
+        theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+        if theses is None or theses.user_id != user_id:
+            raise ThesesNotFoundException()
+
+        updated_theses = await self._theses_repo.update_theses(theses, request)
+        latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
+        
+        return RetrieveThesesResponse(
+            **updated_theses.__dict__,
+            ticker=updated_theses.stocks_mapping.ticker,
+            quant_conditions=updated_theses.quant_conditions_mapping,
+            catalysts=updated_theses.catalyst_mapping,
+            latest_evaluation=latest_evaluation,
+        )
+        
+
+
     async def retrieve_all_theses(self, user_id: str, page: int, page_size: int) -> RetrieveAllThesesResponse:
         all_theses, total = await self._theses_repo.get_all_theses_by_user_id(user_id, page, page_size)
         
@@ -43,7 +61,7 @@ class ThesesService:
     async def retrieve_theses_by_theses_id(self, theses_id: str, user_id: str) -> RetrieveThesesResponse:
         theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
         if theses is None or theses.user_id != user_id:
-            raise ThesesFoundException()
+            raise ThesesNotFoundException()
         
         latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
         logger.info("latest eva: {}", latest_evaluation)

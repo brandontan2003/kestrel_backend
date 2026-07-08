@@ -20,7 +20,7 @@ class ThesesHistory(Base, Auditable):
     theses_status = Column(String(10), nullable=False)
     quant_mode = Column(String(10), nullable=False)
     catalyst_mode = Column(String(10), nullable=False)
-    notes = Column(String, nullable=False)
+    notes = Column(String)
 
 
 @register_history(ThesesHistory)
@@ -33,7 +33,7 @@ class Theses(Base, Auditable):
     theses_status = Column(String(10), default=ThesesStatusEnum.TRACKING, nullable=False)
     quant_mode = Column(String(10), default=QuantModeEnum.ANY, nullable=False)
     catalyst_mode = Column(String(10), default=CatalystModeEnum.ANY, nullable=False)
-    notes = Column(String, nullable=False)
+    notes = Column(String)
 
     users_mapping = relationship(
         ModelName.USER,

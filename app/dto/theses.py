@@ -32,7 +32,7 @@ class CreateThesesRequest(BaseDTO):
     ticker: str
     quant_mode: QuantModeEnum
     catalyst_mode: CatalystModeEnum
-    notes: str
+    notes: str | None = None
     quant_conditions: list[QuantConditionRequest]
     catalysts: list[CatalystRequest]
 
@@ -60,7 +60,7 @@ class CreateThesesResponse(BaseDTO):
     theses_status: ThesesStatusEnum
     quant_mode: QuantModeEnum
     catalyst_mode: CatalystModeEnum
-    notes: str
+    notes: str | None = None
     quant_conditions: list[RetrieveQuantConditionResponse]
     catalysts: list[RetrieveCatalystResponse]
 
@@ -80,7 +80,7 @@ class RetrieveThesesResponse(BaseDTO):
     theses_status: ThesesStatusEnum
     quant_mode: QuantModeEnum
     catalyst_mode: CatalystModeEnum
-    notes: str
+    notes: str | None = None
     quant_conditions: list[RetrieveQuantConditionResponse]
     catalysts: list[RetrieveCatalystResponse]
     latest_evaluation: RetrieveEvaluationResponse | None = None
@@ -91,3 +91,9 @@ class RetrieveAllThesesResponse(BaseDTO):
     page: int
     page_size: int
     total_pages: int
+
+class UpdateThesesRequest(BaseDTO):
+    theses_status: ThesesStatusEnum | None = None
+    quant_mode: QuantModeEnum | None = None
+    catalyst_mode: CatalystModeEnum | None = None
+    notes: str | None = None

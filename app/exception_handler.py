@@ -45,7 +45,7 @@ class StockNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.STOCK_NOT_FOUND.error_code, err.STOCK_NOT_FOUND.error_message)
 
-class ThesesFoundException(BaseAppException):
+class ThesesNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.THESES_NOT_FOUND.error_code, err.THESES_NOT_FOUND.error_message)
 
