@@ -11,7 +11,7 @@ from app.service.theses_service import ThesesService, get_theses_service
 router = APIRouter(prefix="/theses", tags=["theses"])
 
 
-@router.post("", response_model=DataResponse[RetrieveThesesResponse], 
+@router.post("", response_model=DataResponse[CreateThesesResponse], 
              responses={400: {"model": ErrorResponse, "description": ErrorEnum.STOCK_NOT_FOUND.error_code},
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
@@ -20,8 +20,8 @@ async def create_theses(payload: CreateThesesRequest, current_user: User = Depen
                         service: ThesesService = Depends(get_theses_service)):
     return DataResponse(result=await service.create_theses(current_user.user_id, payload))
 
-@router.get("/{theses_id}", response_model=DataResponse[CreateThesesResponse],
-             responses={400: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
+@router.get("/{theses_id}", response_model=DataResponse[RetrieveThesesResponse],
+             responses={404: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                         })
