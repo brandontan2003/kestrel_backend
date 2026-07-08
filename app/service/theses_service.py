@@ -1,11 +1,13 @@
 # app/service/theses_service.py
 
 from fastapi import Depends
+from app.core.logger import logger
 
-from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse
+from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse
 from app.exception_handler import StockNotFoundException, ThesesFoundException
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
+from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
 from app.repository.quant_condition_repository import QuantConditionRepository, get_quant_condition_repository
 from app.repository.stock_repository import StockRepository, get_stock_repository
 from app.repository.theses_repository import ThesesRepository, get_theses_repository
@@ -13,21 +15,27 @@ from app.repository.theses_repository import ThesesRepository, get_theses_reposi
 
 class ThesesService:
     def __init__(self, theses_repo: ThesesRepository, stock_repo: StockRepository,
-                 quant_condition_repo: QuantConditionRepository, catalyst_repo: CatalystRepository):
+                 quant_condition_repo: QuantConditionRepository, catalyst_repo: CatalystRepository, evaluation_repo: EvaluationRepository):
         self._theses_repo = theses_repo
         self._stock_repo = stock_repo
         self._quant_condition_repo = quant_condition_repo
         self._catalyst_repo = catalyst_repo
+        self._evaluation_repo = evaluation_repo
 
     async def retrieve_theses_by_theses_id(self, theses_id: str, user_id: str) -> RetrieveThesesResponse:
         theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
         if theses is None or theses.user_id != user_id:
             raise ThesesFoundException()
+        
+        latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
+        logger.info("latest eva: {}", latest_evaluation)
+
         return RetrieveThesesResponse(
             **theses.__dict__,
             ticker=theses.stocks_mapping.ticker,
             quant_conditions=theses.quant_conditions_mapping,
-            catalysts=theses.catalyst_mapping
+            catalysts=theses.catalyst_mapping,
+            latest_evaluation=latest_evaluation
             )
 
     async def create_theses(self, user_id: str, request: CreateThesesRequest) -> RetrieveThesesResponse:
@@ -53,13 +61,20 @@ class ThesesService:
         if catalysts:
             await self._catalyst_repo.bulk_create_catalysts(theses_id=theses_id, catalysts=catalysts)
         
-        return await self.retrieve_theses_by_theses_id(theses_id, user_id)
+        theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+        return CreateThesesResponse(
+            **theses.__dict__,
+            ticker=theses.stocks_mapping.ticker,
+            quant_conditions=theses.quant_conditions_mapping,
+            catalysts=theses.catalyst_mapping
+            ) 
 
 
 async def get_theses_service(
         theses_repo: ThesesRepository = Depends(get_theses_repository),
         stock_repo: StockRepository = Depends(get_stock_repository),
         quant_condition_repo: QuantConditionRepository = Depends(get_quant_condition_repository),
-        catalyst_repo: CatalystRepository = Depends(get_catalyst_repository)
+        catalyst_repo: CatalystRepository = Depends(get_catalyst_repository),
+        evaluation_repo: EvaluationRepository = Depends(get_evaluation_repository)
 ) -> ThesesService:
-    return ThesesService(theses_repo, stock_repo, quant_condition_repo, catalyst_repo)
+    return ThesesService(theses_repo, stock_repo, quant_condition_repo, catalyst_repo, evaluation_repo)

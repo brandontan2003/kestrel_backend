@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import Any
-
+from datetime import datetime
 from pydantic import field_validator
 
 from app.dto.base import BaseDTO
@@ -53,6 +53,26 @@ class RetrieveCatalystResponse(BaseDTO):
     enabled: bool
 
 
+class CreateThesesResponse(BaseDTO):
+    theses_id: str
+    user_id: str
+    ticker: str
+    theses_status: ThesesStatusEnum
+    quant_mode: QuantModeEnum
+    catalyst_mode: CatalystModeEnum
+    notes: str
+    quant_conditions: list[RetrieveQuantConditionResponse]
+    catalysts: list[RetrieveCatalystResponse]
+
+
+class RetrieveEvaluationResponse(BaseDTO):
+    evaluation_id: str
+    state: str
+    signal: bool
+    reason: str | None = None
+    created_at: datetime
+
+
 class RetrieveThesesResponse(BaseDTO):
     theses_id: str
     user_id: str
@@ -63,3 +83,4 @@ class RetrieveThesesResponse(BaseDTO):
     notes: str
     quant_conditions: list[RetrieveQuantConditionResponse]
     catalysts: list[RetrieveCatalystResponse]
+    latest_evaluation: RetrieveEvaluationResponse | None = None
