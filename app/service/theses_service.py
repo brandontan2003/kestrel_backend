@@ -3,7 +3,7 @@
 from fastapi import Depends
 from app.core.logger import logger
 
-from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse
+from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse, RetrieveAllThesesResponse
 from app.exception_handler import StockNotFoundException, ThesesFoundException
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
@@ -21,6 +21,24 @@ class ThesesService:
         self._quant_condition_repo = quant_condition_repo
         self._catalyst_repo = catalyst_repo
         self._evaluation_repo = evaluation_repo
+    
+    async def retrieve_all_theses(self, user_id: str, page: int, page_size: int) -> RetrieveAllThesesResponse:
+        all_theses, total = await self._theses_repo.get_all_theses_by_user_id(user_id, page, page_size)
+        
+        theses_ids = [t.theses_id for t in all_theses]
+        evaluations_by_theses_id = await self._evaluation_repo.get_latest_evaluations_by_user_id(theses_ids)
+        result = [
+            RetrieveThesesResponse(
+                **theses.__dict__,
+                ticker=theses.stocks_mapping.ticker,
+                quant_conditions=theses.quant_conditions_mapping,
+                catalysts=theses.catalyst_mapping,
+                latest_evaluation=evaluations_by_theses_id.get(theses.theses_id),
+            )
+            for theses in all_theses
+        ]
+        
+        return RetrieveAllThesesResponse(theses=result, total=total, page=page, page_size=page_size, total_pages=-(-total // page_size))
 
     async def retrieve_theses_by_theses_id(self, theses_id: str, user_id: str) -> RetrieveThesesResponse:
         theses = await self._theses_repo.get_theses_by_theses_id(theses_id)

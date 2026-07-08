@@ -84,3 +84,10 @@ class RetrieveThesesResponse(BaseDTO):
     quant_conditions: list[RetrieveQuantConditionResponse]
     catalysts: list[RetrieveCatalystResponse]
     latest_evaluation: RetrieveEvaluationResponse | None = None
+
+class RetrieveAllThesesResponse(BaseDTO):
+    theses: list[RetrieveThesesResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

@@ -1,6 +1,6 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
 from app.models import Theses
@@ -30,6 +30,21 @@ class ThesesRepository:
         if theses:
             await self._db.refresh(theses)
         return theses
+    
+    async def get_all_theses_by_user_id(self, user_id: str, page: int, page_size: int) -> tuple[list[Theses], int]:
+        offset = (page - 1) * page_size
+        count_result = await self._db.execute(select(func.count()).select_from(Theses).where(Theses.user_id == user_id))
+        total = count_result.scalar_one()
+
+        # Paginated fetch
+        result = await self._db.execute(
+            select(Theses)
+            .where(Theses.user_id == user_id)
+            .order_by(Theses.created_at.desc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        return result.scalars().all(), total
 
 
 async def get_theses_repository(db: AsyncSession = Depends(get_db)) -> ThesesRepository:
