@@ -37,10 +37,3 @@ class QuantCondition(Base, Auditable):
         back_populates="quant_conditions_mapping",
         lazy=LAZY_SELECTIN
     )
-
-    quant_proposals_mapping = relationship(
-        ModelName.QUANT_PROPOSAL,
-        back_populates="quant_conditions_mapping",
-        cascade=RelationshipCascade.DELETE_ORPHAN,
-        lazy=LAZY_SELECTIN
-    )

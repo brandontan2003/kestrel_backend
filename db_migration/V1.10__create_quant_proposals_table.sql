@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS tbl_quant_proposals (
   quant_proposal_id VARCHAR(36) NOT NULL,
   theses_id VARCHAR(36) NOT NULL,
-  quant_condition_id VARCHAR(36) NOT NULL, -- the condition being changed
+  quant_condition_id VARCHAR(36), -- the condition being changed
+  proposal_type VARCHAR(15) NOT NULL, -- add | remove (update 'enabled' to False) | update
+
   proposed_change JSON NOT NULL,
 
   llm_rationale TEXT,
@@ -26,7 +28,9 @@ CREATE TABLE IF NOT EXISTS tbl_quant_proposals_history (
   quant_proposal_history_id VARCHAR(36) NOT NULL,
   quant_proposal_id VARCHAR(36) NOT NULL,
   theses_id VARCHAR(36) NOT NULL,
-  quant_condition_id VARCHAR(36) NOT NULL,
+  quant_condition_id VARCHAR(36),
+  proposal_type VARCHAR(15) NOT NULL, -- add | remove (update 'enabled' to False) | update
+
   proposed_change JSON NOT NULL,
 
   llm_rationale TEXT,

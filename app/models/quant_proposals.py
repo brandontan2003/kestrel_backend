@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 from app.core.database.auditable import Auditable
 from app.core.database.history_decorator import register_history
-from app.enums.ProposalEnum import ProposalStatusEnum
+from app.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.enums.SqlalchemyEnum import LAZY_SELECTIN, ModelName
 from app.models.base import Base
 
@@ -18,8 +18,9 @@ class QuantProposalHistory(Base, Auditable):
 
     theses_id = Column(String(36), nullable=False)
     quant_condition_id = Column(String(36))
-    proposed_change = Column(JSON, nullable=False)
+    proposal_type = Column(String(36), nullable=False)
 
+    proposed_change = Column(JSON, nullable=False)
     llm_rationale = Column(Text)
     llm_confidence = Column(DECIMAL(4, 3))
 
@@ -37,7 +38,8 @@ class QuantProposal(Base, Auditable):
     quant_proposal_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 
     theses_id = Column(String(36), ForeignKey("tbl_theses.theses_id"), nullable=False)
-    quant_condition_id = Column(String(36), ForeignKey("tbl_quant_conditions.quant_condition_id"), nullable=False)
+    quant_condition_id = Column(String(36), nullable=False)
+    proposal_type = Column(String(36), default=ProposalTypeEnum.UPDATE, nullable=False)
 
     proposed_change = Column(JSON, nullable=False)
     llm_rationale = Column(Text)
@@ -57,12 +59,6 @@ class QuantProposal(Base, Auditable):
 
     theses_mapping = relationship(
         ModelName.THESES,
-        back_populates="quant_proposals_mapping",
-        lazy=LAZY_SELECTIN
-    )
-
-    quant_conditions_mapping = relationship(
-        ModelName.QUANT_CONDITION,
         back_populates="quant_proposals_mapping",
         lazy=LAZY_SELECTIN
     )
