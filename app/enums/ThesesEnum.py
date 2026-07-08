@@ -14,3 +14,5 @@ class CatalystModeEnum(str, enum.Enum):
 
 class ThesesStatusEnum(str, enum.Enum):
     TRACKING = "TRACKING"
+    DELETED = "DELETED"
+

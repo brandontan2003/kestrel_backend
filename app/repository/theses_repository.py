@@ -4,6 +4,7 @@ from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
 from app.dto.theses import UpdateThesesRequest
+from app.enums.ThesesEnum import ThesesStatusEnum
 from app.models import Theses
 
 
@@ -24,6 +25,18 @@ class ThesesRepository:
         await self._db.flush()
         await self._db.refresh(theses)
         return theses
+
+    async def delete_theses(self, theses: Theses) -> None:
+        theses.theses_status = ThesesStatusEnum.DELETED
+
+        for condition in theses.quant_conditions_mapping:
+            condition.enabled = False
+
+        for catalyst in theses.catalyst_mapping:
+            catalyst.enabled = False
+
+        await self._db.flush()
+
     
     async def update_theses(self, theses: Theses, request: UpdateThesesRequest) -> Theses:
         theses_status = request.theses_status

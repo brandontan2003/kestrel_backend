@@ -3,7 +3,9 @@
 from fastapi import Depends
 from app.core.logger import logger
 
+from app.dto.base import SuccessResponse
 from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest
+from app.enums.ThesesEnum import ThesesStatusEnum
 from app.exception_handler import StockNotFoundException, ThesesNotFoundException
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
@@ -22,6 +24,15 @@ class ThesesService:
         self._catalyst_repo = catalyst_repo
         self._evaluation_repo = evaluation_repo
     
+    async def delete_theses(self, theses_id: str, user_id: str) -> SuccessResponse:
+        theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+        if theses is None or theses.user_id != user_id:
+            raise ThesesNotFoundException()
+
+        await self._theses_repo.delete_theses(theses)
+        
+        return SuccessResponse()
+    
     async def update_theses_by_theses_id(self, theses_id: str, user_id: str, request: UpdateThesesRequest) -> RetrieveAllThesesResponse:
         theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
         if theses is None or theses.user_id != user_id:
@@ -29,7 +40,7 @@ class ThesesService:
 
         updated_theses = await self._theses_repo.update_theses(theses, request)
         latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
-        
+
         return RetrieveThesesResponse(
             **updated_theses.__dict__,
             ticker=updated_theses.stocks_mapping.ticker,
