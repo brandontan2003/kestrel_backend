@@ -22,6 +22,8 @@ class ErrorEnum(enum.Enum):
     # Theses
     THESES_NOT_FOUND = ("THESES_NOT_FOUND", "Theses not found")
 
+    QUANT_CONDITION_NOT_FOUND = ("QUANT_CONDITION_NOT_FOUND", "Quant Condition not found")
+
     @property
     def error_code(self) -> str:
         return self.value[0]

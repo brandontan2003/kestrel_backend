@@ -1,9 +1,11 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import select
 
 from app.config import get_db
 from app.dto.theses import QuantConditionRequest
-from app.models import Catalyst, QuantCondition
+from app.models import QuantCondition
+from app.models.theses import Theses
 
 
 class QuantConditionRepository:
@@ -34,6 +36,22 @@ class QuantConditionRepository:
         await self._db.flush()
         await self._db.refresh(quant_condition)
         return quant_condition
+    
+    async def get_quant_condition_by_id_and_user(self, quant_condition_id: str, theses_id: str, user_id: str) -> QuantCondition | None:
+        result = await self._db.execute(
+            select(QuantCondition)
+            .join(Theses, Theses.theses_id == QuantCondition.theses_id)
+            .where(
+                QuantCondition.quant_condition_id == quant_condition_id,
+                QuantCondition.theses_id == theses_id,
+                Theses.user_id == user_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def delete_quant_condition(self, quant_condition: QuantCondition) -> None:
+        quant_condition.enabled = False
+        await self._db.flush()
 
 
 async def get_quant_condition_repository(db: AsyncSession = Depends(get_db)) -> QuantConditionRepository:

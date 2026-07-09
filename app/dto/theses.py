@@ -97,3 +97,15 @@ class UpdateThesesRequest(BaseDTO):
     quant_mode: QuantModeEnum | None = None
     catalyst_mode: CatalystModeEnum | None = None
     notes: str | None = None
+
+class CreateQuantConditionRequest(BaseDTO):
+    metric: str
+    operator: str
+    value: Decimal
+
+    @field_validator("operator")
+    @classmethod
+    def validate_operator(cls, v: str) -> str:
+        if v not in VALID_OPERATORS:
+            raise ValueError(f"Operator must be one of {VALID_OPERATORS}")
+        return v

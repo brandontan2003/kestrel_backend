@@ -4,9 +4,9 @@ from fastapi import Depends
 from app.core.logger import logger
 
 from app.dto.base import SuccessResponse
-from app.dto.theses import CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest
+from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest
 from app.enums.ThesesEnum import ThesesStatusEnum
-from app.exception_handler import StockNotFoundException, ThesesNotFoundException
+from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
@@ -114,7 +114,28 @@ class ThesesService:
             ticker=theses.stocks_mapping.ticker,
             quant_conditions=theses.quant_conditions_mapping,
             catalysts=theses.catalyst_mapping
-            ) 
+            )
+
+    async def add_quant_condition(self, theses_id: str, user_id: str, request: CreateQuantConditionRequest) -> RetrieveThesesResponse:
+        theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+        if theses is None or theses.user_id != user_id:
+            raise ThesesNotFoundException()
+
+        await self._quant_condition_repo.create_quant_condition(
+            theses_id=theses_id,
+            metric=request.metric,
+            operator=request.operator,
+            value=request.value
+        )
+        return await self.retrieve_theses_by_theses_id(theses_id, user_id)
+ 
+    async def delete_quant_condition(self, condition_id: str, user_id: str) -> SuccessResponse:
+        quant_condition = await self._quant_condition_repo.get_quant_condition_by_id_and_user(condition_id, user_id)
+        if quant_condition is None:
+            raise QuantConditionNotFoundException()
+
+        await self._quant_condition_repo.delete_quant_condition(quant_condition)
+        return SuccessResponse()
 
 
 async def get_theses_service(

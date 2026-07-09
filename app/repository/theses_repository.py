@@ -60,12 +60,9 @@ class ThesesRepository:
         await self._db.flush()
         return theses
 
-    async def get_theses_by_theses_id(self, theses_id) -> Theses:
+    async def get_theses_by_theses_id(self, theses_id) -> Theses | None:
         result = await self._db.execute(select(Theses).where(Theses.theses_id == theses_id))
-        theses = result.scalar_one_or_none()
-        if theses:
-            await self._db.refresh(theses)
-        return theses
+        return result.scalar_one_or_none()
     
     async def get_all_theses_by_user_id(self, user_id: str, page: int, page_size: int) -> tuple[list[Theses], int]:
         offset = (page - 1) * page_size
