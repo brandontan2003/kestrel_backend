@@ -59,6 +59,9 @@ class ThesesRepository:
         await self._db.flush()
         return theses
 
+    async def expire_theses(self, theses: Theses) -> None:
+        self._db.expire(theses)
+
     async def get_theses_by_theses_id(self, theses_id) -> Theses | None:
         result = await self._db.execute(select(Theses).where(Theses.theses_id == theses_id))
         return result.scalar_one_or_none()

@@ -4,7 +4,7 @@ from app.core.authorization.auth_dependency import get_current_user
 from app.dto.base import DataResponse, SuccessResponse
 from app.dto.error import ErrorResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
-    CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest
+    CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest
 from app.enums.ErrorEnum import ErrorEnum
 from app.models.users import User
 from app.service.theses_service import ThesesService, get_theses_service
@@ -75,8 +75,20 @@ async def add_quant_condition_to_theses(theses_id: str, payload: CreateQuantCond
     return DataResponse(result=await service.add_quant_condition(theses_id, current_user.user_id, payload))
 
 
+@router.put("/{theses_id}/quant-conditions/{condition_id}", response_model=DataResponse[RetrieveThesesResponse],
+              responses={400: {"model": ErrorResponse, "description": ErrorEnum.QUANT_CONDITION_NOT_FOUND.error_code},
+                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                         })
+async def update_quant_condition(theses_id: str, condition_id: str, payload: UpdateQuantConditionRequest,
+                                 current_user: User = Depends(get_current_user),
+                                 service: ThesesService = Depends(get_theses_service)):
+    return DataResponse(
+        result=await service.update_quant_condition(theses_id, condition_id, current_user.user_id, payload))
+
+
 @router.delete("/{theses_id}/quant-conditions/{condition_id}", response_model=SuccessResponse,
-               responses={400: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
+               responses={400: {"model": ErrorResponse, "description": ErrorEnum.QUANT_CONDITION_NOT_FOUND.error_code},
                           401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                           422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                           })

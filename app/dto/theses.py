@@ -113,3 +113,17 @@ class CreateQuantConditionRequest(BaseDTO):
         if v not in VALID_OPERATORS:
             raise ValueError(f"Operator must be one of {VALID_OPERATORS}")
         return v
+
+
+class UpdateQuantConditionRequest(BaseDTO):
+    metric: str | None = None
+    operator: str | None = None
+    value: Decimal | None = None
+    enabled: bool | None = None
+
+    @field_validator("operator")
+    @classmethod
+    def validate_operator(cls, v: str) -> str:
+        if v not in VALID_OPERATORS:
+            raise ValueError(f"Operator must be one of {VALID_OPERATORS}")
+        return v

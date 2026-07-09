@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
 from app.config import get_db
-from app.dto.theses import QuantConditionRequest
+from app.dto.theses import QuantConditionRequest, UpdateQuantConditionRequest
 from app.models import QuantCondition
 from app.models.theses import Theses
 
@@ -49,6 +49,25 @@ class QuantConditionRepository:
             )
         )
         return result.scalar_one_or_none()
+
+    async def update_quant_condition(self, qc: QuantCondition, request: UpdateQuantConditionRequest) -> QuantCondition:
+        metric = request.metric
+        if metric is not None:
+            qc.metric = request.metric
+
+        operator = request.operator
+        if operator is not None:
+            qc.operator = request.operator
+
+        value = request.value
+        if value is not None:
+            qc.value = request.value
+
+        enabled = request.enabled
+        if enabled is not None:
+            qc.enabled = request.enabled
+        await self._db.flush()
+        return qc
 
     async def delete_quant_condition(self, quant_condition: QuantCondition) -> None:
         quant_condition.enabled = False

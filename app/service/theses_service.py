@@ -5,7 +5,7 @@ from fastapi import Depends
 from app.core.logger import logger
 from app.dto.base import SuccessResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
-    CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest
+    CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest
 from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
@@ -108,12 +108,14 @@ class ThesesService:
         if catalysts:
             await self._catalyst_repo.bulk_create_catalysts(theses_id=theses_id, catalysts=catalysts)
 
-        theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+        await self._theses_repo.expire_theses(theses)
+        query_theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+
         return CreateThesesResponse(
-            **theses.__dict__,
-            ticker=theses.stocks_mapping.ticker,
-            quant_conditions=theses.quant_conditions_mapping,
-            catalysts=theses.catalyst_mapping
+            **query_theses.__dict__,
+            ticker=query_theses.stocks_mapping.ticker,
+            quant_conditions=query_theses.quant_conditions_mapping,
+            catalysts=query_theses.catalyst_mapping
         )
 
     async def add_quant_condition(self, theses_id: str, user_id: str,
@@ -128,6 +130,17 @@ class ThesesService:
             operator=request.operator,
             value=request.value
         )
+        await self._theses_repo.expire_theses(theses)
+        return await self.retrieve_theses_by_theses_id(theses_id, user_id)
+
+    async def update_quant_condition(self, theses_id: str, condition_id: str, user_id: str,
+                                     payload: UpdateQuantConditionRequest) -> RetrieveThesesResponse:
+        condition = await self._quant_condition_repo.get_quant_condition_by_id_and_user(
+            condition_id, theses_id, user_id)
+        if condition is None:
+            raise QuantConditionNotFoundException()
+
+        await self._quant_condition_repo.update_quant_condition(condition, payload)
         return await self.retrieve_theses_by_theses_id(theses_id, user_id)
 
     async def delete_quant_condition(self, theses_id: str, condition_id: str, user_id: str) -> SuccessResponse:
