@@ -5,8 +5,8 @@ from sqlalchemy.orm import relationship
 
 from app.core.database.auditable import Auditable
 from app.core.database.history_decorator import register_history
-from app.enums.StockEnum import StockStatusEnum
 from app.enums.SqlalchemyEnum import LAZY_SELECTIN, RelationshipCascade, ModelName
+from app.enums.StockEnum import StockStatusEnum
 from app.models.base import Base
 
 

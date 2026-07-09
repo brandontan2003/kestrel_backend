@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, ForeignKey, Numeric, DateTime, DECIMAL
+from sqlalchemy import Column, String, ForeignKey, DateTime, DECIMAL
 from sqlalchemy.dialects.postgresql import MONEY
 from sqlalchemy.orm import relationship
 

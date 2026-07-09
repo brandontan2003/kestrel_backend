@@ -1,6 +1,7 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
-from datetime import datetime
+
 from pydantic import field_validator
 
 from app.dto.base import BaseDTO
@@ -85,6 +86,7 @@ class RetrieveThesesResponse(BaseDTO):
     catalysts: list[RetrieveCatalystResponse]
     latest_evaluation: RetrieveEvaluationResponse | None = None
 
+
 class RetrieveAllThesesResponse(BaseDTO):
     theses: list[RetrieveThesesResponse]
     total: int
@@ -92,11 +94,13 @@ class RetrieveAllThesesResponse(BaseDTO):
     page_size: int
     total_pages: int
 
+
 class UpdateThesesRequest(BaseDTO):
     theses_status: ThesesStatusEnum | None = None
     quant_mode: QuantModeEnum | None = None
     catalyst_mode: CatalystModeEnum | None = None
     notes: str | None = None
+
 
 class CreateQuantConditionRequest(BaseDTO):
     metric: str

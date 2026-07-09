@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import func, select
 from sqlalchemy.orm import aliased
+from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
 from app.models import Evaluation
@@ -12,7 +12,8 @@ class EvaluationRepository:
         self._db = db
 
     async def get_latest_evaluation(self, theses_id) -> Evaluation | None:
-        result = await self._db.execute(select(Evaluation).where(Evaluation.theses_id == theses_id).order_by(Evaluation.created_at.desc()).limit(1))
+        result = await self._db.execute(
+            select(Evaluation).where(Evaluation.theses_id == theses_id).order_by(Evaluation.created_at.desc()).limit(1))
         return result.scalar_one_or_none()
 
     async def get_latest_evaluations_by_user_id(self, theses_ids: list[str]) -> dict[str, Evaluation]:
@@ -44,6 +45,7 @@ class EvaluationRepository:
         evaluations = result.scalars().all()
         # Return as dict keyed by theses_id for O(1) lookup in the service
         return {e.theses_id: e for e in evaluations}
+
 
 async def get_evaluation_repository(db: AsyncSession = Depends(get_db)) -> EvaluationRepository:
     return EvaluationRepository(db)

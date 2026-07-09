@@ -41,17 +41,21 @@ class RegistrationErrorException(BaseAppException):
     def __init__(self):
         super().__init__(500, err.USER_REGISTRATION_FAILED.error_code, err.USER_REGISTRATION_FAILED.error_message)
 
+
 class StockNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.STOCK_NOT_FOUND.error_code, err.STOCK_NOT_FOUND.error_message)
+
 
 class ThesesNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.THESES_NOT_FOUND.error_code, err.THESES_NOT_FOUND.error_message)
 
+
 class QuantConditionNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.QUANT_CONDITION_NOT_FOUND.error_code, err.QUANT_CONDITION_NOT_FOUND.error_message)
+
 
 class CommonException(BaseAppException):
     pass

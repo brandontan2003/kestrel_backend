@@ -37,20 +37,19 @@ class ThesesRepository:
 
         await self._db.flush()
 
-    
     async def update_theses(self, theses: Theses, request: UpdateThesesRequest) -> Theses:
         theses_status = request.theses_status
         if theses_status is not None:
             theses.theses_status = theses_status
-                
+
         quant_mode = request.quant_mode
         if quant_mode is not None:
             theses.quant_mode = quant_mode
-        
+
         catalyst_mode = request.catalyst_mode
         if catalyst_mode is not None:
             theses.catalyst_mode = catalyst_mode
-        
+
         notes = request.notes
         if notes is not None:
             if notes == "<None>":
@@ -63,7 +62,7 @@ class ThesesRepository:
     async def get_theses_by_theses_id(self, theses_id) -> Theses | None:
         result = await self._db.execute(select(Theses).where(Theses.theses_id == theses_id))
         return result.scalar_one_or_none()
-    
+
     async def get_all_theses_by_user_id(self, user_id: str, page: int, page_size: int) -> tuple[list[Theses], int]:
         offset = (page - 1) * page_size
         count_result = await self._db.execute(select(func.count()).select_from(Theses).where(Theses.user_id == user_id))

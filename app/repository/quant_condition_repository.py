@@ -36,8 +36,9 @@ class QuantConditionRepository:
         await self._db.flush()
         await self._db.refresh(quant_condition)
         return quant_condition
-    
-    async def get_quant_condition_by_id_and_user(self, quant_condition_id: str, theses_id: str, user_id: str) -> QuantCondition | None:
+
+    async def get_quant_condition_by_id_and_user(self, quant_condition_id: str, theses_id: str,
+                                                 user_id: str) -> QuantCondition | None:
         result = await self._db.execute(
             select(QuantCondition)
             .join(Theses, Theses.theses_id == QuantCondition.theses_id)
