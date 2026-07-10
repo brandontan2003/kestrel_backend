@@ -79,7 +79,7 @@ class ThesesRepository:
             .offset(offset)
             .limit(page_size)
         )
-        return result.scalars().all(), total
+        return list(result.scalars().all()), total
 
 
 async def get_theses_repository(db: AsyncSession = Depends(get_db)) -> ThesesRepository:
