@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, ForeignKey, Numeric, DateTime, DECIMAL
+from sqlalchemy import Column, String, ForeignKey, DateTime, DECIMAL
 from sqlalchemy.dialects.postgresql import MONEY
 from sqlalchemy.orm import relationship
 
@@ -20,7 +20,7 @@ class OutcomeHistory(Base, Auditable):
     llm_confidence = Column(DECIMAL(4, 3), nullable=False)
     triggered_at = Column(DateTime(timezone=True))
     price_after_30d = Column(MONEY)
-    notes = Column(Numeric)
+    notes = Column(String)
 
 
 @register_history(OutcomeHistory)
@@ -33,7 +33,7 @@ class Outcome(Base, Auditable):
     llm_confidence = Column(DECIMAL(4, 3), nullable=False)
     triggered_at = Column(DateTime(timezone=True))
     price_after_30d = Column(MONEY)
-    notes = Column(Numeric)
+    notes = Column(String)
 
     theses_mapping = relationship(
         ModelName.THESES,

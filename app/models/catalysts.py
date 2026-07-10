@@ -16,8 +16,8 @@ class CatalystHistory(Base, Auditable):
     catalyst_id = Column(String(36), ForeignKey("tbl_catalysts.catalyst_id"), nullable=False)
     theses_id = Column(String(36), nullable=False)
     state = Column(String(15), nullable=False)
-    description = Column(String, nullable=False)
-    evidence = Column(JSON, nullable=False)
+    description = Column(String)
+    evidence = Column(JSON)
     enabled = Column(Boolean, nullable=False)
 
 
@@ -28,8 +28,8 @@ class Catalyst(Base, Auditable):
     catalyst_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     theses_id = Column(String(36), ForeignKey("tbl_theses.theses_id"), nullable=False)
     state = Column(String(15), nullable=False)
-    description = Column(String, nullable=False)
-    evidence = Column(JSON, nullable=False)
+    description = Column(String)
+    evidence = Column(JSON)
     enabled = Column(Boolean, default=True, nullable=False)
 
     theses_mapping = relationship(
