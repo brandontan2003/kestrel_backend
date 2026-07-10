@@ -1,12 +1,11 @@
-# app/service/theses_service.py
-
 from fastapi import Depends
 
-from app.core.logger import logger
 from app.dto.base import SuccessResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
-    CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest
-from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException
+    CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest, \
+    CreateCatalystRequest, UpdateCatalystRequest
+from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException, \
+    CatalystNotFoundException
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
 from app.repository.quant_condition_repository import QuantConditionRepository, get_quant_condition_repository
@@ -74,7 +73,6 @@ class ThesesService:
             raise ThesesNotFoundException()
 
         latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
-        logger.info("latest eva: {}", latest_evaluation)
 
         return RetrieveThesesResponse(
             **theses.__dict__,
@@ -150,6 +148,38 @@ class ThesesService:
             raise QuantConditionNotFoundException()
 
         await self._quant_condition_repo.delete_quant_condition(quant_condition)
+        return SuccessResponse()
+
+    async def add_catalyst(self, theses_id: str, user_id: str,
+                           request: CreateCatalystRequest) -> RetrieveThesesResponse:
+        theses = await self._theses_repo.get_theses_by_theses_id(theses_id)
+        if theses is None or theses.user_id != user_id:
+            raise ThesesNotFoundException()
+
+        await self._catalyst_repo.create_catalyst(
+            theses_id=theses_id,
+            state=request.state,
+            description=request.description,
+            evidence=request.evidence
+        )
+        await self._theses_repo.expire_theses(theses)
+        return await self.retrieve_theses_by_theses_id(theses_id, user_id)
+
+    async def update_catalyst(self, theses_id: str, catalyst_id: str, user_id: str,
+                              payload: UpdateCatalystRequest) -> RetrieveThesesResponse:
+        catalyst = await self._catalyst_repo.get_catalyst_by_id_and_user(catalyst_id, theses_id, user_id)
+        if catalyst is None:
+            raise CatalystNotFoundException()
+
+        await self._catalyst_repo.update_catalyst(catalyst, payload)
+        return await self.retrieve_theses_by_theses_id(theses_id, user_id)
+
+    async def delete_catalyst(self, theses_id: str, catalyst_id: str, user_id: str) -> SuccessResponse:
+        catalyst = await self._catalyst_repo.get_catalyst_by_id_and_user(catalyst_id, theses_id, user_id)
+        if catalyst is None:
+            raise CatalystNotFoundException()
+
+        await self._catalyst_repo.delete_catalyst(catalyst)
         return SuccessResponse()
 
 

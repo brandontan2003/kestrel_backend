@@ -53,19 +53,19 @@ class QuantConditionRepository:
     async def update_quant_condition(self, qc: QuantCondition, request: UpdateQuantConditionRequest) -> QuantCondition:
         metric = request.metric
         if metric is not None:
-            qc.metric = request.metric
+            qc.metric = metric
 
         operator = request.operator
         if operator is not None:
-            qc.operator = request.operator
+            qc.operator = operator
 
         value = request.value
         if value is not None:
-            qc.value = request.value
+            qc.value = value
 
         enabled = request.enabled
         if enabled is not None:
-            qc.enabled = request.enabled
+            qc.enabled = enabled
         await self._db.flush()
         return qc
 

@@ -1,9 +1,10 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import select
 
 from app.config import get_db
-from app.dto.theses import CatalystRequest
-from app.models import Catalyst
+from app.dto.theses import CatalystRequest, UpdateCatalystRequest
+from app.models import Catalyst, Theses
 
 
 class CatalystRepository:
@@ -35,6 +36,41 @@ class CatalystRepository:
         await self._db.flush()
         await self._db.refresh(catalyst)
         return catalyst
+
+    async def get_catalyst_by_id_and_user(self, catalyst_id: str, theses_id: str, user_id: str) -> Catalyst | None:
+        result = await self._db.execute(
+            select(Catalyst)
+            .join(Theses, Theses.theses_id == Catalyst.theses_id)
+            .where(
+                Catalyst.catalyst_id == catalyst_id,
+                Catalyst.theses_id == theses_id,
+                Theses.user_id == user_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def update_catalyst(self, catalyst: Catalyst, request: UpdateCatalystRequest) -> Catalyst:
+        state = request.state
+        if state is not None:
+            catalyst.state = state
+
+        description = request.description
+        if description is not None:
+            catalyst.description = description
+
+        evidence = request.evidence
+        if evidence is not None:
+            catalyst.evidence = evidence
+
+        enabled = request.enabled
+        if enabled is not None:
+            catalyst.enabled = enabled
+        await self._db.flush()
+        return catalyst
+
+    async def delete_catalyst(self, catalyst: Catalyst) -> None:
+        catalyst.enabled = False
+        await self._db.flush()
 
 
 async def get_catalyst_repository(db: AsyncSession = Depends(get_db)) -> CatalystRepository:

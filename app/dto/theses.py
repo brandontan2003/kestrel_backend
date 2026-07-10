@@ -127,3 +127,16 @@ class UpdateQuantConditionRequest(BaseDTO):
         if v not in VALID_OPERATORS:
             raise ValueError(f"Operator must be one of {VALID_OPERATORS}")
         return v
+
+
+class UpdateCatalystRequest(BaseDTO):
+    state: str
+    description: str | None = None
+    evidence: dict[str, Any] | None = None
+    enabled: bool | None = None
+
+
+class CreateCatalystRequest(BaseDTO):
+    state: str
+    description: str | None = None
+    evidence: dict[str, Any] | None = None
