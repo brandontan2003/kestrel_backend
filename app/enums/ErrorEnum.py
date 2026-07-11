@@ -44,6 +44,9 @@ class ErrorEnum(enum.Enum):
     # Evaluation
     EVALUATION_NOT_FOUND = ("EVALUATION_NOT_FOUND", "Evaluation not found")
 
+    # Alert
+    ALERT_NOT_FOUND = ("ALERT_NOT_FOUND", "Alert not found")
+
     @property
     def error_code(self) -> str:
         return self.value[0]
