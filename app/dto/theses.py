@@ -56,7 +56,6 @@ class RetrieveCatalystResponse(BaseDTO):
 
 class CreateThesesResponse(BaseDTO):
     theses_id: str
-    user_id: str
     ticker: str
     theses_status: ThesesStatusEnum
     quant_mode: QuantModeEnum
@@ -66,9 +65,8 @@ class CreateThesesResponse(BaseDTO):
     catalysts: list[RetrieveCatalystResponse]
 
 
-class RetrieveThesesResponse(BaseDTO):
+class ThesesResponse(BaseDTO):
     theses_id: str
-    user_id: str
     ticker: str
     theses_status: ThesesStatusEnum
     quant_mode: QuantModeEnum
@@ -79,8 +77,13 @@ class RetrieveThesesResponse(BaseDTO):
     latest_evaluation: EvaluationResponse | None = None
 
 
+class RetrieveThesesResponse(BaseDTO):
+    user_id: str
+    theses: ThesesResponse
+
 class RetrieveAllThesesResponse(BaseDTO):
-    theses: list[RetrieveThesesResponse]
+    user_id: str
+    theses: list[ThesesResponse]
     total: int
     page: int
     page_size: int

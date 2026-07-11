@@ -4,7 +4,7 @@ from app.dto.base import SuccessResponse
 from app.dto.evaluation import EvaluationResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
     CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest, \
-    CreateCatalystRequest, UpdateCatalystRequest, RetrieveAllEvaluationResponse
+    CreateCatalystRequest, UpdateCatalystRequest, RetrieveAllEvaluationResponse, ThesesResponse
 from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException, \
     CatalystNotFoundException
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
@@ -40,14 +40,12 @@ class ThesesService:
 
         updated_theses = await self._theses_repo.update_theses(theses, request)
         latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
+        result = ThesesResponse(
+            **updated_theses.__dict__, ticker=updated_theses.stocks_mapping.ticker,
+            quant_conditions=updated_theses.quant_conditions_mapping, catalysts=updated_theses.catalyst_mapping,
+            latest_evaluation=latest_evaluation)
 
-        return RetrieveThesesResponse(
-            **updated_theses.__dict__,
-            ticker=updated_theses.stocks_mapping.ticker,
-            quant_conditions=updated_theses.quant_conditions_mapping,
-            catalysts=updated_theses.catalyst_mapping,
-            latest_evaluation=latest_evaluation,
-        )
+        return RetrieveThesesResponse(user_id=user_id, theses=result)
 
     async def retrieve_all_theses(self, user_id: str, page: int, page_size: int) -> RetrieveAllThesesResponse:
         all_theses, total = await self._theses_repo.get_all_theses_by_user_id(user_id, page, page_size)
@@ -55,17 +53,13 @@ class ThesesService:
         theses_ids = [t.theses_id for t in all_theses]
         evaluations_by_theses_id = await self._evaluation_repo.get_latest_evaluations_by_user_id(theses_ids)
         result = [
-            RetrieveThesesResponse(
-                **theses.__dict__,
-                ticker=theses.stocks_mapping.ticker,
-                quant_conditions=theses.quant_conditions_mapping,
-                catalysts=theses.catalyst_mapping,
-                latest_evaluation=evaluations_by_theses_id.get(theses.theses_id),
-            )
+            ThesesResponse(**theses.__dict__, ticker=theses.stocks_mapping.ticker,
+                           quant_conditions=theses.quant_conditions_mapping, catalysts=theses.catalyst_mapping,
+                           latest_evaluation=evaluations_by_theses_id.get(theses.theses_id))
             for theses in all_theses
         ]
 
-        return RetrieveAllThesesResponse(theses=result, total=total, page=page, page_size=page_size,
+        return RetrieveAllThesesResponse(user_id=user_id, theses=result, total=total, page=page, page_size=page_size,
                                          total_pages=-(-total // page_size))
 
     async def retrieve_theses_by_theses_id(self, theses_id: str, user_id: str) -> RetrieveThesesResponse:
@@ -74,14 +68,10 @@ class ThesesService:
             raise ThesesNotFoundException()
 
         latest_evaluation = await self._evaluation_repo.get_latest_evaluation(theses_id)
-
-        return RetrieveThesesResponse(
-            **theses.__dict__,
-            ticker=theses.stocks_mapping.ticker,
-            quant_conditions=theses.quant_conditions_mapping,
-            catalysts=theses.catalyst_mapping,
-            latest_evaluation=latest_evaluation
-        )
+        result = ThesesResponse(**theses.__dict__, ticker=theses.stocks_mapping.ticker,
+                                quant_conditions=theses.quant_conditions_mapping, catalysts=theses.catalyst_mapping,
+                                latest_evaluation=latest_evaluation)
+        return RetrieveThesesResponse(user_id=user_id, theses=result)
 
     async def create_theses(self, user_id: str, request: CreateThesesRequest) -> CreateThesesResponse:
         stock = await self._stock_repo.get_stock_by_ticker(request.ticker)
