@@ -61,6 +61,10 @@ class CatalystNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.CATALYST_NOT_FOUND.error_code, err.CATALYST_NOT_FOUND.error_message)
 
+class ThesesProposalNotFoundException(BaseAppException):
+    def __init__(self):
+        super().__init__(404, err.THESES_PROPOSAL_NOT_FOUND.error_code, err.THESES_PROPOSAL_NOT_FOUND.error_message)
+
 class QuantProposalNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.QUANT_PROPOSAL_NOT_FOUND.error_code, err.QUANT_PROPOSAL_NOT_FOUND.error_message)

@@ -5,7 +5,7 @@ from app.dto.base import DataResponse
 from app.dto.error import ErrorResponse
 from app.dto.proposal import (
     RetrieveAllThesesProposalResponse, RetrieveAllQuantProposalResponse, RetrieveAllCatalystProposalResponse,
-    RetrieveAllProposalsResponse, RetrieveQuantProposalResponse, RejectProposalRequest,
+    RetrieveAllProposalsResponse, RetrieveQuantProposalResponse, RejectProposalRequest, RetrieveThesesProposalResponse,
 )
 from app.enums.ErrorEnum import ErrorEnum
 from app.enums.ProposalEnum import ProposalStatusEnum
@@ -66,6 +66,34 @@ async def retrieve_all_catalyst_proposals(
         user_id=current_user.user_id, catalyst_proposal_status=status, page=page, page_size=page_size)
     return DataResponse(result=catalyst_proposals)
 
+# Theses Proposal
+@router.put("/theses/{proposal_id}/approve", response_model=DataResponse[RetrieveThesesProposalResponse],
+            responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                       404: {"model": ErrorResponse, "description": ErrorEnum.THESES_PROPOSAL_NOT_FOUND.error_code},
+                       409: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_STATUS.error_code},
+                       422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                       })
+async def approve_theses_proposal(
+        proposal_id: str, current_user: User = Depends(get_current_user),
+        proposal_service: ProposalService = Depends(get_proposal_service)):
+    proposal = await proposal_service.approve_theses_proposal(proposal_id=proposal_id, user_id=current_user.user_id)
+    return DataResponse(result=proposal)
+
+@router.put("/theses/{proposal_id}/reject", response_model=DataResponse[RetrieveThesesProposalResponse],
+            responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                       404: {"model": ErrorResponse, "description": ErrorEnum.THESES_PROPOSAL_NOT_FOUND.error_code},
+                       409: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_STATUS.error_code},
+                       422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                       })
+async def reject_theses_proposal(
+        proposal_id: str, payload: RejectProposalRequest, current_user: User = Depends(get_current_user),
+        proposal_service: ProposalService = Depends(get_proposal_service)):
+    proposal = await proposal_service.reject_theses_proposal(
+        proposal_id=proposal_id,
+        user_id=current_user.user_id,
+        rejection_reason=payload.rejection_reason,
+    )
+    return DataResponse(result=proposal)
 
 # Quant Proposal
 @router.put("/quant/{proposal_id}/approve", response_model=DataResponse[RetrieveQuantProposalResponse],

@@ -1,8 +1,11 @@
+from datetime import timezone, datetime
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select, func
 
 from app.config import get_db
+from app.enums.ProposalEnum import ProposalStatusEnum
 from app.models import ThesesProposal
 
 
@@ -10,10 +13,10 @@ class ThesesProposalRepository:
     def __init__(self, db: AsyncSession):
         self._db = db
 
-    async def get_by_theses_proposal_id(self, proposal_id: str) -> ThesesProposal | None:
+    async def get_by_theses_proposal_id_and_user_id(self, proposal_id: str, user_id: str) -> ThesesProposal | None:
         result = await self._db.execute(
             select(ThesesProposal).where(
-                ThesesProposal.theses_proposal_id == proposal_id
+                ThesesProposal.theses_proposal_id == proposal_id, ThesesProposal.user_id == user_id
             )
         )
         return result.scalar_one_or_none()
@@ -30,6 +33,19 @@ class ThesesProposalRepository:
         offset = (page - 1) * page_size
         rows = await self._db.execute(base.offset(offset).limit(page_size))
         return list(rows.scalars().all()), total
+
+    async def approve_theses_proposal(self, proposal: ThesesProposal) -> ThesesProposal:
+        proposal.theses_proposal_status = ProposalStatusEnum.APPROVED
+        proposal.resolved_at = datetime.now(timezone.utc)
+        await self._db.flush()
+        return proposal
+
+    async def reject_theses_proposal(self, proposal: ThesesProposal, rejection_reason: str) -> ThesesProposal:
+        proposal.theses_proposal_status = ProposalStatusEnum.REJECTED
+        proposal.rejection_reason = rejection_reason
+        proposal.resolved_at = datetime.now(timezone.utc)
+        await self._db.flush()
+        return proposal
 
 
 async def get_theses_proposal_repository(db: AsyncSession = Depends(get_db)) -> ThesesProposalRepository:

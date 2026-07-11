@@ -3,11 +3,10 @@ from fastapi.params import Depends
 from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesProposalResponse, \
     RetrieveAllQuantProposalResponse, RetrieveQuantProposalResponse, RetrieveAllCatalystProposalResponse, \
     RetrieveCatalystProposalResponse, RetrieveAllProposalsResponse
-from app.dto.theses import UpdateQuantConditionRequest
+from app.dto.theses import UpdateQuantConditionRequest, QuantConditionRequest
 from app.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.exception_handler import QuantProposalNotFoundException, InvalidProposalStatusException, \
-    QuantConditionNotFoundException, InvalidProposalTypeException
-from app.models import QuantProposal
+    QuantConditionNotFoundException, InvalidProposalTypeException, ThesesProposalNotFoundException
 from app.repository.catalyst_proposal_repository import CatalystProposalRepository, get_catalyst_proposal_repository
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.quant_condition_repository import QuantConditionRepository, get_quant_condition_repository
@@ -63,6 +62,38 @@ class ProposalService:
 
         return RetrieveAllCatalystProposalResponse(catalyst_proposals=result, total=total, page=page,
                                                    page_size=page_size, total_pages=-(-total // page_size))
+
+    # Theses proposals
+    async def approve_theses_proposal(self, proposal_id: str, user_id: str) -> RetrieveThesesProposalResponse:
+        proposal = await self._theses_proposal_repo.get_by_theses_proposal_id_and_user_id(proposal_id, user_id)
+        if proposal is None:
+            raise ThesesProposalNotFoundException()
+        self._check_status(proposal.theses_proposal_status)
+
+        change = proposal.proposed_change
+        theses = await self._theses_repo.create_theses(
+            user_id=user_id,
+            stock_id=proposal.stock_id,
+            quant_mode=change.get("quant_mode"),
+            catalyst_mode=change.get("catalyst_mode"),
+            notes=change.get("notes")
+        )
+        theses_id = theses.theses_id
+        await self._quant_condition_repo.bulk_create_quant_condition(theses_id, change.get("quant_conditions"))
+        await self._catalyst_repo.bulk_create_catalysts(theses_id, change.get("catalysts"))
+
+        updated_theses_proposal = await self._theses_proposal_repo.approve_theses_proposal(proposal)
+        return RetrieveThesesProposalResponse(**updated_theses_proposal.__dict__)
+
+    async def reject_theses_proposal(self, proposal_id: str, user_id: str,
+                                    rejection_reason: str) -> RetrieveThesesProposalResponse:
+        proposal = await self._theses_proposal_repo.get_by_theses_proposal_id_and_user_id(proposal_id, user_id)
+        if proposal is None:
+            raise ThesesProposalNotFoundException()
+        self._check_status(proposal.theses_proposal_status)
+
+        updated_theses_proposal = await self._theses_proposal_repo.reject_theses_proposal(proposal, rejection_reason)
+        return RetrieveThesesProposalResponse(**updated_theses_proposal.__dict__)
 
     # Quant proposals
     async def approve_quant_proposal(self, proposal_id: str, user_id: str) -> RetrieveQuantProposalResponse:

@@ -25,6 +25,9 @@ class ErrorEnum(enum.Enum):
     # Quant Condition
     QUANT_CONDITION_NOT_FOUND = ("QUANT_CONDITION_NOT_FOUND", "Quant Condition not found")
 
+    # Theses Proposal
+    THESES_PROPOSAL_NOT_FOUND = ("THESES_PROPOSAL_NOT_FOUND", "Theses Proposal not found")
+
     # Quant Proposal
     QUANT_PROPOSAL_NOT_FOUND = ("QUANT_PROPOSAL_NOT_FOUND", "Quant Proposal not found")
 
