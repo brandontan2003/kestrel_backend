@@ -37,9 +37,9 @@ async def retrieve_theses_by_theses_id(theses_id: str, current_user: User = Depe
             responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                        })
-async def retrieve_all_theses(current_user: User = Depends(get_current_user),
-                              service: ThesesService = Depends(get_theses_service),
-                              page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100)):
+async def retrieve_all_theses(
+        current_user: User = Depends(get_current_user), service: ThesesService = Depends(get_theses_service),
+        page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100)):
     return DataResponse(result=await service.retrieve_all_theses(current_user.user_id, page, page_size))
 
 
@@ -48,9 +48,9 @@ async def retrieve_all_theses(current_user: User = Depends(get_current_user),
                        404: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                        })
-async def update_theses_by_theses_id(theses_id: str, payload: UpdateThesesRequest,
-                                     current_user: User = Depends(get_current_user),
-                                     service: ThesesService = Depends(get_theses_service)):
+async def update_theses_by_theses_id(
+        theses_id: str, payload: UpdateThesesRequest, current_user: User = Depends(get_current_user),
+        service: ThesesService = Depends(get_theses_service)):
     return DataResponse(result=await service.update_theses_by_theses_id(theses_id, current_user.user_id, payload))
 
 
@@ -59,8 +59,9 @@ async def update_theses_by_theses_id(theses_id: str, payload: UpdateThesesReques
                           404: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
                           422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                           })
-async def delete_theses(theses_id: str, current_user: User = Depends(get_current_user),
-                        service: ThesesService = Depends(get_theses_service)):
+async def delete_theses(
+        theses_id: str, current_user: User = Depends(get_current_user),
+        service: ThesesService = Depends(get_theses_service)):
     return await service.delete_theses(theses_id, current_user.user_id)
 
 
@@ -70,9 +71,9 @@ async def delete_theses(theses_id: str, current_user: User = Depends(get_current
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                         })
-async def add_quant_condition_to_theses(theses_id: str, payload: CreateQuantConditionRequest,
-                                        current_user: User = Depends(get_current_user),
-                                        service: ThesesService = Depends(get_theses_service)):
+async def add_quant_condition_to_theses(
+        theses_id: str, payload: CreateQuantConditionRequest, current_user: User = Depends(get_current_user),
+        service: ThesesService = Depends(get_theses_service)):
     return DataResponse(result=await service.add_quant_condition(theses_id, current_user.user_id, payload))
 
 
@@ -81,9 +82,9 @@ async def add_quant_condition_to_theses(theses_id: str, payload: CreateQuantCond
                        401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                        })
-async def update_quant_condition(theses_id: str, condition_id: str, payload: UpdateQuantConditionRequest,
-                                 current_user: User = Depends(get_current_user),
-                                 service: ThesesService = Depends(get_theses_service)):
+async def update_quant_condition(
+        theses_id: str, condition_id: str, payload: UpdateQuantConditionRequest,
+        current_user: User = Depends(get_current_user), service: ThesesService = Depends(get_theses_service)):
     return DataResponse(
         result=await service.update_quant_condition(theses_id, condition_id, current_user.user_id, payload))
 
@@ -104,9 +105,9 @@ async def delete_quant_condition(theses_id: str, condition_id: str, current_user
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                         })
-async def add_catalyst_to_theses(theses_id: str, payload: CreateCatalystRequest,
-                                 current_user: User = Depends(get_current_user),
-                                 service: ThesesService = Depends(get_theses_service)):
+async def add_catalyst_to_theses(
+        theses_id: str, payload: CreateCatalystRequest, current_user: User = Depends(get_current_user),
+        service: ThesesService = Depends(get_theses_service)):
     return DataResponse(result=await service.add_catalyst(theses_id, current_user.user_id, payload))
 
 
@@ -115,9 +116,9 @@ async def add_catalyst_to_theses(theses_id: str, payload: CreateCatalystRequest,
                        401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                        })
-async def update_catalyst(theses_id: str, catalyst_id: str, payload: UpdateCatalystRequest,
-                          current_user: User = Depends(get_current_user),
-                          service: ThesesService = Depends(get_theses_service)):
+async def update_catalyst(
+        theses_id: str, catalyst_id: str, payload: UpdateCatalystRequest,
+        current_user: User = Depends(get_current_user), service: ThesesService = Depends(get_theses_service)):
     return DataResponse(
         result=await service.update_catalyst(theses_id, catalyst_id, current_user.user_id, payload))
 
@@ -130,4 +131,5 @@ async def update_catalyst(theses_id: str, catalyst_id: str, payload: UpdateCatal
 async def delete_catalyst(theses_id: str, catalyst_id: str, current_user: User = Depends(get_current_user),
                           service: ThesesService = Depends(get_theses_service)):
     return await service.delete_catalyst(theses_id, catalyst_id, current_user.user_id)
+
 
