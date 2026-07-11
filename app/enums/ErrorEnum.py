@@ -31,6 +31,9 @@ class ErrorEnum(enum.Enum):
     # Quant Proposal
     QUANT_PROPOSAL_NOT_FOUND = ("QUANT_PROPOSAL_NOT_FOUND", "Quant Proposal not found")
 
+    # Catalyst Proposal
+    CATALYST_PROPOSAL_NOT_FOUND = ("CATALYST_PROPOSAL_NOT_FOUND", "Catalyst Proposal not found")
+
     # Catalyst
     CATALYST_NOT_FOUND = ("CATALYST_NOT_FOUND", "Catalyst not found")
 

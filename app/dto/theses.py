@@ -130,7 +130,7 @@ class UpdateQuantConditionRequest(BaseDTO):
 
 
 class UpdateCatalystRequest(BaseDTO):
-    state: str
+    state: str | None = None
     description: str | None = None
     evidence: dict[str, Any] | None = None
     enabled: bool | None = None

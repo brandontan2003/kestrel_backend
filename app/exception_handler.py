@@ -78,6 +78,31 @@ class InvalidProposalTypeException(BaseAppException):
         super().__init__(422, err.INVALID_PROPOSAL_TYPE.error_code, err.INVALID_PROPOSAL_TYPE.error_message)
 
 
+class ThesesProposalNotFoundException(BaseAppException):
+    def __init__(self):
+        super().__init__(404, err.THESES_PROPOSAL_NOT_FOUND.error_code, err.THESES_PROPOSAL_NOT_FOUND.error_message)
+
+
+class QuantProposalNotFoundException(BaseAppException):
+    def __init__(self):
+        super().__init__(404, err.QUANT_PROPOSAL_NOT_FOUND.error_code, err.QUANT_PROPOSAL_NOT_FOUND.error_message)
+
+
+class CatalystProposalNotFoundException(BaseAppException):
+    def __init__(self):
+        super().__init__(404, err.CATALYST_PROPOSAL_NOT_FOUND.error_code, err.CATALYST_PROPOSAL_NOT_FOUND.error_message)
+
+
+class InvalidProposalStatusException(BaseAppException):
+    def __init__(self):
+        super().__init__(409, err.INVALID_PROPOSAL_STATUS.error_code, err.INVALID_PROPOSAL_STATUS.error_message)
+
+
+class InvalidProposalTypeException(BaseAppException):
+    def __init__(self):
+        super().__init__(422, err.INVALID_PROPOSAL_TYPE.error_code, err.INVALID_PROPOSAL_TYPE.error_message)
+
+
 class CommonException(BaseAppException):
     pass
 
