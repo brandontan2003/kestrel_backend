@@ -146,7 +146,7 @@ class ProposalService:
         updated_quant_proposal = await self._quant_proposal_repo.reject_quant_proposal(proposal, rejection_reason)
         return RetrieveQuantProposalResponse(**updated_quant_proposal.__dict__)
 
-    # Quant proposals
+    # Catalyst proposals
     async def approve_catalyst_proposal(self, proposal_id: str, user_id: str) -> RetrieveCatalystProposalResponse:
         proposal = await self._catalyst_proposal_repo.get_by_catalyst_proposal_id_and_user_id(proposal_id, user_id)
         if proposal is None:
