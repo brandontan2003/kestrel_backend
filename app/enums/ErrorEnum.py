@@ -25,8 +25,18 @@ class ErrorEnum(enum.Enum):
     # Quant Condition
     QUANT_CONDITION_NOT_FOUND = ("QUANT_CONDITION_NOT_FOUND", "Quant Condition not found")
 
+    # Theses Proposal
+    THESES_PROPOSAL_NOT_FOUND = ("THESES_PROPOSAL_NOT_FOUND", "Theses Proposal not found")
+
+    # Quant Proposal
+    QUANT_PROPOSAL_NOT_FOUND = ("QUANT_PROPOSAL_NOT_FOUND", "Quant Proposal not found")
+
     # Catalyst
     CATALYST_NOT_FOUND = ("CATALYST_NOT_FOUND", "Catalyst not found")
+
+    # Proposal
+    INVALID_PROPOSAL_STATUS = ("INVALID_PROPOSAL_STATUS", "Proposal status is not valid")
+    INVALID_PROPOSAL_TYPE = ("INVALID_PROPOSAL_TYPE", "Proposal type is not valid")
 
     @property
     def error_code(self) -> str:
