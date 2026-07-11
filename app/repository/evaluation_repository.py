@@ -4,7 +4,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
-from app.models import Evaluation
+from app.models import Evaluation, Theses
 
 
 class EvaluationRepository:
@@ -45,6 +45,17 @@ class EvaluationRepository:
         evaluations = result.scalars().all()
         # Return as dict keyed by theses_id for O(1) lookup in the service
         return {e.theses_id: e for e in evaluations}
+
+    async def get_evaluation_by_evaluation_id_and_user_id(self, evaluation_id: str, user_id: str) -> Evaluation | None:
+        result = await self._db.execute(
+            select(Evaluation)
+            .join(Theses, Theses.theses_id == Evaluation.theses_id)
+            .where(
+                Evaluation.evaluation_id == evaluation_id,
+                Theses.user_id == user_id
+            )
+        )
+        return result.scalar_one_or_none()
 
 
 async def get_evaluation_repository(db: AsyncSession = Depends(get_db)) -> EvaluationRepository:

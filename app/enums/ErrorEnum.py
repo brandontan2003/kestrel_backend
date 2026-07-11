@@ -41,6 +41,9 @@ class ErrorEnum(enum.Enum):
     INVALID_PROPOSAL_STATUS = ("INVALID_PROPOSAL_STATUS", "Proposal status is not valid")
     INVALID_PROPOSAL_TYPE = ("INVALID_PROPOSAL_TYPE", "Proposal type is not valid")
 
+    # Evaluation
+    EVALUATION_NOT_FOUND = ("EVALUATION_NOT_FOUND", "Evaluation not found")
+
     @property
     def error_code(self) -> str:
         return self.value[0]
