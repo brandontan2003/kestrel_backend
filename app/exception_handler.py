@@ -90,6 +90,10 @@ class EvaluationNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.EVALUATION_NOT_FOUND.error_code, err.EVALUATION_NOT_FOUND.error_message)
 
+class AlertNotFoundException(BaseAppException):
+    def __init__(self):
+        super().__init__(404, err.ALERT_NOT_FOUND.error_code, err.ALERT_NOT_FOUND.error_message)
+
 
 class CommonException(BaseAppException):
     pass

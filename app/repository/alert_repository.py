@@ -25,6 +25,10 @@ class AlertRepository:
         )
         return list(result.scalars().all()), total
 
+    async def get_alert_by_alert_id_and_user_id(self, alert_id: str, user_id: str) -> Alert | None:
+        result = await self._db.execute(select(Alert).where(Alert.alert_id == alert_id, Alert.user_id == user_id))
+        return result.scalar_one_or_none()
+
 
 async def get_alert_repository(db: AsyncSession = Depends(get_db)) -> AlertRepository:
     return AlertRepository(db)
