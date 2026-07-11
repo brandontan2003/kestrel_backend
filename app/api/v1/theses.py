@@ -5,7 +5,7 @@ from app.dto.base import DataResponse, SuccessResponse
 from app.dto.error import ErrorResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
     CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest, \
-    CreateCatalystRequest, UpdateCatalystRequest
+    CreateCatalystRequest, UpdateCatalystRequest, RetrieveAllEvaluationResponse
 from app.enums.ErrorEnum import ErrorEnum
 from app.models.users import User
 from app.service.theses_service import ThesesService, get_theses_service
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/theses", tags=["theses"])
 
 
 @router.post("", response_model=DataResponse[CreateThesesResponse],
-             responses={400: {"model": ErrorResponse, "description": ErrorEnum.STOCK_NOT_FOUND.error_code},
+             responses={404: {"model": ErrorResponse, "description": ErrorEnum.STOCK_NOT_FOUND.error_code},
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                         })
@@ -66,7 +66,7 @@ async def delete_theses(theses_id: str, current_user: User = Depends(get_current
 
 # Quant Condition
 @router.post("/{theses_id}/quant-condition", response_model=DataResponse[RetrieveThesesResponse],
-             responses={400: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
+             responses={404: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                         })
@@ -77,7 +77,7 @@ async def add_quant_condition_to_theses(theses_id: str, payload: CreateQuantCond
 
 
 @router.put("/{theses_id}/quant-condition/{condition_id}", response_model=DataResponse[RetrieveThesesResponse],
-            responses={400: {"model": ErrorResponse, "description": ErrorEnum.QUANT_CONDITION_NOT_FOUND.error_code},
+            responses={404: {"model": ErrorResponse, "description": ErrorEnum.QUANT_CONDITION_NOT_FOUND.error_code},
                        401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                        })
@@ -89,7 +89,7 @@ async def update_quant_condition(theses_id: str, condition_id: str, payload: Upd
 
 
 @router.delete("/{theses_id}/quant-condition/{condition_id}", response_model=SuccessResponse,
-               responses={400: {"model": ErrorResponse, "description": ErrorEnum.QUANT_CONDITION_NOT_FOUND.error_code},
+               responses={404: {"model": ErrorResponse, "description": ErrorEnum.QUANT_CONDITION_NOT_FOUND.error_code},
                           401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                           422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                           })
@@ -100,7 +100,7 @@ async def delete_quant_condition(theses_id: str, condition_id: str, current_user
 
 # Catalyst
 @router.post("/{theses_id}/catalyst", response_model=DataResponse[RetrieveThesesResponse],
-             responses={400: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
+             responses={404: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
                         401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                         422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                         })
@@ -111,7 +111,7 @@ async def add_catalyst_to_theses(theses_id: str, payload: CreateCatalystRequest,
 
 
 @router.put("/{theses_id}/catalyst/{catalyst_id}", response_model=DataResponse[RetrieveThesesResponse],
-            responses={400: {"model": ErrorResponse, "description": ErrorEnum.CATALYST_NOT_FOUND.error_code},
+            responses={404: {"model": ErrorResponse, "description": ErrorEnum.CATALYST_NOT_FOUND.error_code},
                        401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                        })
@@ -123,10 +123,11 @@ async def update_catalyst(theses_id: str, catalyst_id: str, payload: UpdateCatal
 
 
 @router.delete("/{theses_id}/catalyst/{catalyst_id}", response_model=SuccessResponse,
-               responses={400: {"model": ErrorResponse, "description": ErrorEnum.CATALYST_NOT_FOUND.error_code},
+               responses={404: {"model": ErrorResponse, "description": ErrorEnum.CATALYST_NOT_FOUND.error_code},
                           401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                           422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
                           })
 async def delete_catalyst(theses_id: str, catalyst_id: str, current_user: User = Depends(get_current_user),
                           service: ThesesService = Depends(get_theses_service)):
     return await service.delete_catalyst(theses_id, catalyst_id, current_user.user_id)
+

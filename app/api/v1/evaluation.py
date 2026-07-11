@@ -18,6 +18,6 @@ router = APIRouter(prefix="/evaluations", tags=["evaluations"])
                        })
 async def retrieve_evaluation_by_evaluation_id(
         evaluation_id: str, current_user: User = Depends(get_current_user),
-        evaluation_service: EvaluationService = Depends(get_evaluation_service)):
+        service: EvaluationService = Depends(get_evaluation_service)):
     return DataResponse(
-        result=await evaluation_service.get_evaluation(evaluation_id=evaluation_id, user_id=current_user.id))
+        result=await service.get_evaluation(evaluation_id=evaluation_id, user_id=current_user.id))

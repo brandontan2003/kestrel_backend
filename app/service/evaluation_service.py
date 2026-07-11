@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from app.dto.theses import RetrieveEvaluationResponse
+from app.dto.evaluation import RetrieveEvaluationResponse, EvaluationResponse
 from app.exception_handler import EvaluationNotFoundException
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
 
@@ -13,7 +13,8 @@ class EvaluationService:
         evaluation = await self._evaluation_repo.get_evaluation_by_evaluation_id_and_user_id(evaluation_id, user_id)
         if evaluation is None:
             raise EvaluationNotFoundException()
-        return RetrieveEvaluationResponse(**evaluation.__dict__)
+        result = EvaluationResponse(**evaluation.__dict__)
+        return RetrieveEvaluationResponse(theses_id=evaluation.theses_id, evaluation=result)
 
 
 async def get_evaluation_service(

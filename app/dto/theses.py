@@ -1,10 +1,11 @@
-from datetime import datetime
+from decimal import Decimal
 from decimal import Decimal
 from typing import Any
 
 from pydantic import field_validator
 
 from app.dto.base import BaseDTO
+from app.dto.evaluation import EvaluationResponse
 from app.enums.ThesesEnum import QuantModeEnum, CatalystModeEnum, ThesesStatusEnum
 
 VALID_OPERATORS = {"<", ">", "<=", ">=", "=="}
@@ -66,14 +67,6 @@ class CreateThesesResponse(BaseDTO):
     catalysts: list[RetrieveCatalystResponse]
 
 
-class RetrieveEvaluationResponse(BaseDTO):
-    evaluation_id: str
-    state: str
-    signal: bool
-    reason: str | None = None
-    created_at: datetime
-
-
 class RetrieveThesesResponse(BaseDTO):
     theses_id: str
     user_id: str
@@ -84,7 +77,7 @@ class RetrieveThesesResponse(BaseDTO):
     notes: str | None = None
     quant_conditions: list[RetrieveQuantConditionResponse]
     catalysts: list[RetrieveCatalystResponse]
-    latest_evaluation: RetrieveEvaluationResponse | None = None
+    latest_evaluation: EvaluationResponse | None = None
 
 
 class RetrieveAllThesesResponse(BaseDTO):
@@ -140,3 +133,8 @@ class CreateCatalystRequest(BaseDTO):
     state: str
     description: str | None = None
     evidence: dict[str, Any] | None = None
+
+
+class RetrieveAllEvaluationResponse(BaseDTO):
+    theses_id: str
+    evaluations: list[EvaluationResponse]

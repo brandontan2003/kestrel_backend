@@ -1,13 +1,19 @@
+from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from app.dto.base import BaseDTO
 
 
-class RetrieveEvaluationResponse(BaseModel):
+class EvaluationResponse(BaseDTO):
     evaluation_id: str
-    theses_id: str
     evaluation_status: str
     prompt_version: str
     results: dict[str, Any]
     signal: str
-    reason: str | None
+    reason: str | None = None
+    created_at: datetime
+
+
+class RetrieveEvaluationResponse(BaseDTO):
+    theses_id: str
+    evaluation: EvaluationResponse
