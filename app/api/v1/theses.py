@@ -133,3 +133,14 @@ async def delete_catalyst(theses_id: str, catalyst_id: str, current_user: User =
     return await service.delete_catalyst(theses_id, catalyst_id, current_user.user_id)
 
 
+# Evaluation
+@router.get("/{theses_id}/evaluations", response_model=DataResponse[RetrieveAllEvaluationResponse],
+            responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                       404: {"model": ErrorResponse, "description": ErrorEnum.THESES_NOT_FOUND.error_code},
+                       422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                       })
+async def retrieve_evaluations_by_theses_id(
+        theses_id: str, page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100),
+        current_user: User = Depends(get_current_user), service: ThesesService = Depends(get_theses_service)):
+    return DataResponse(
+        result=await service.retrieve_evaluations_by_theses_id(theses_id, current_user.user_id, page, page_size))

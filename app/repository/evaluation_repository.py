@@ -57,6 +57,22 @@ class EvaluationRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_all_evaluation_by_theses_id(self, theses_id: str, page: int,
+                                              page_size: int) -> tuple[list[Evaluation], int]:
+        offset = (page - 1) * page_size
+        count_result = await self._db.execute(
+            select(func.count()).select_from(Evaluation).where(Evaluation.theses_id == theses_id))
+        total = count_result.scalar_one()
+
+        result = await self._db.execute(
+            select(Evaluation)
+            .where(Evaluation.theses_id == theses_id)
+            .order_by(Evaluation.created_at.desc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        return list(result.scalars().all()), total
+
 
 async def get_evaluation_repository(db: AsyncSession = Depends(get_db)) -> EvaluationRepository:
     return EvaluationRepository(db)

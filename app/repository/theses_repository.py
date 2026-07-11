@@ -66,6 +66,12 @@ class ThesesRepository:
         result = await self._db.execute(select(Theses).where(Theses.theses_id == theses_id))
         return result.scalar_one_or_none()
 
+    async def get_theses_by_theses_id_and_user_id(self, theses_id: str, user_id: str) -> Theses | None:
+        result = await self._db.execute(
+            select(Theses).where(Theses.theses_id == theses_id, Theses.user_id == user_id)
+        )
+        return result.scalar_one_or_none()
+
     async def get_all_theses_by_user_id(self, user_id: str, page: int, page_size: int) -> tuple[list[Theses], int]:
         offset = (page - 1) * page_size
         count_result = await self._db.execute(select(func.count()).select_from(Theses).where(Theses.user_id == user_id))

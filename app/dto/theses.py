@@ -1,5 +1,4 @@
 from decimal import Decimal
-from decimal import Decimal
 from typing import Any
 
 from pydantic import field_validator
@@ -138,3 +137,7 @@ class CreateCatalystRequest(BaseDTO):
 class RetrieveAllEvaluationResponse(BaseDTO):
     theses_id: str
     evaluations: list[EvaluationResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

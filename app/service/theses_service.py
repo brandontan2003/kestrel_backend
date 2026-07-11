@@ -1,9 +1,10 @@
 from fastapi import Depends
 
 from app.dto.base import SuccessResponse
+from app.dto.evaluation import EvaluationResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
     CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest, \
-    CreateCatalystRequest, UpdateCatalystRequest
+    CreateCatalystRequest, UpdateCatalystRequest, RetrieveAllEvaluationResponse
 from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException, \
     CatalystNotFoundException
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
@@ -181,6 +182,17 @@ class ThesesService:
 
         await self._catalyst_repo.delete_catalyst(catalyst)
         return SuccessResponse()
+
+    async def retrieve_evaluations_by_theses_id(self, theses_id: str, user_id: str, page: int,
+                                                page_size: int) -> RetrieveAllEvaluationResponse:
+        theses = await self._theses_repo.get_theses_by_theses_id_and_user_id(theses_id, user_id)
+        if theses is None:
+            raise ThesesNotFoundException()
+
+        evaluations, total = await self._evaluation_repo.get_all_evaluation_by_theses_id(theses_id, page, page_size)
+        result = [EvaluationResponse(**evaluation.__dict__) for evaluation in evaluations]
+        return RetrieveAllEvaluationResponse(theses_id=theses_id, evaluations=result, total=total, page=page,
+                                             page_size=page_size, total_pages=-(-total // page_size))
 
 
 async def get_theses_service(
