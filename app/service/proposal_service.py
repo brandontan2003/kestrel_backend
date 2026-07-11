@@ -3,10 +3,11 @@ from fastapi.params import Depends
 from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesProposalResponse, \
     RetrieveAllQuantProposalResponse, RetrieveQuantProposalResponse, RetrieveAllCatalystProposalResponse, \
     RetrieveCatalystProposalResponse, RetrieveAllProposalsResponse
-from app.dto.theses import UpdateQuantConditionRequest, QuantConditionRequest
+from app.dto.theses import UpdateQuantConditionRequest, UpdateCatalystRequest
 from app.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.exception_handler import QuantProposalNotFoundException, InvalidProposalStatusException, \
-    QuantConditionNotFoundException, InvalidProposalTypeException, ThesesProposalNotFoundException
+    QuantConditionNotFoundException, InvalidProposalTypeException, ThesesProposalNotFoundException, \
+    CatalystProposalNotFoundException, CatalystNotFoundException
 from app.repository.catalyst_proposal_repository import CatalystProposalRepository, get_catalyst_proposal_repository
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.quant_condition_repository import QuantConditionRepository, get_quant_condition_repository
@@ -86,7 +87,7 @@ class ProposalService:
         return RetrieveThesesProposalResponse(**updated_theses_proposal.__dict__)
 
     async def reject_theses_proposal(self, proposal_id: str, user_id: str,
-                                    rejection_reason: str) -> RetrieveThesesProposalResponse:
+                                     rejection_reason: str) -> RetrieveThesesProposalResponse:
         proposal = await self._theses_proposal_repo.get_by_theses_proposal_id_and_user_id(proposal_id, user_id)
         if proposal is None:
             raise ThesesProposalNotFoundException()
@@ -118,6 +119,7 @@ class ProposalService:
                 proposal.quant_condition_id, proposal.theses_id, user_id)
             if condition is None:
                 raise QuantConditionNotFoundException()
+
             if proposal_type == ProposalTypeEnum.UPDATE:
                 request = UpdateQuantConditionRequest(metric=change["metric"], operator=change["operator"],
                                                       value=change["value"], enabled=change["enabled"])
@@ -143,6 +145,57 @@ class ProposalService:
 
         updated_quant_proposal = await self._quant_proposal_repo.reject_quant_proposal(proposal, rejection_reason)
         return RetrieveQuantProposalResponse(**updated_quant_proposal.__dict__)
+
+    # Quant proposals
+    async def approve_catalyst_proposal(self, proposal_id: str, user_id: str) -> RetrieveCatalystProposalResponse:
+        proposal = await self._catalyst_proposal_repo.get_by_catalyst_proposal_id_and_user_id(proposal_id, user_id)
+        if proposal is None:
+            raise CatalystProposalNotFoundException()
+        self._check_status(proposal.catalyst_proposal_status)
+
+        change = proposal.proposed_change
+        proposal_type = proposal.proposal_type
+
+        if proposal_type == ProposalTypeEnum.ADD:
+            await self._catalyst_repo.create_catalyst(
+                theses_id=proposal.theses_id,
+                state=change["state"],
+                description=change["description"],
+                evidence=change["evidence"],
+            )
+
+        else:
+            condition = await self._catalyst_repo.get_catalyst_by_id_and_user(
+                proposal.catalyst_id, proposal.theses_id, user_id)
+            if condition is None:
+                raise CatalystNotFoundException()
+
+            if proposal_type == ProposalTypeEnum.UPDATE:
+                request = UpdateCatalystRequest(state=change["state"], description=change["description"],
+                                                evidence=change["evidence"], enabled=change["enabled"])
+                await self._catalyst_repo.update_catalyst(condition, request)
+                await self._catalyst_proposal_repo.supersede_pending_updates(
+                    catalyst_id=proposal.catalyst_id,
+                    approved_proposal_id=proposal_id
+                )
+            elif proposal_type == ProposalTypeEnum.REMOVE:
+                await self._quant_condition_repo.delete_quant_condition(condition)
+            else:
+                raise InvalidProposalTypeException()
+
+        updated_catalyst_proposal = await self._catalyst_proposal_repo.approve_catalyst_proposal(proposal)
+        return RetrieveCatalystProposalResponse(**updated_catalyst_proposal.__dict__)
+
+    async def reject_catalyst_proposal(self, proposal_id: str, user_id: str,
+                                       rejection_reason: str) -> RetrieveCatalystProposalResponse:
+        proposal = await self._catalyst_proposal_repo.get_by_catalyst_proposal_id_and_user_id(proposal_id, user_id)
+        if proposal is None:
+            raise CatalystProposalNotFoundException()
+        self._check_status(proposal.catalyst_proposal_status)
+
+        updated_catalyst_proposal = await self._catalyst_proposal_repo.reject_catalyst_proposal(
+            proposal, rejection_reason)
+        return RetrieveCatalystProposalResponse(**updated_catalyst_proposal.__dict__)
 
     @staticmethod
     def _check_status(current_status: str) -> None:

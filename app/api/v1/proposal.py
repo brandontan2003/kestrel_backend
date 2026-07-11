@@ -6,6 +6,7 @@ from app.dto.error import ErrorResponse
 from app.dto.proposal import (
     RetrieveAllThesesProposalResponse, RetrieveAllQuantProposalResponse, RetrieveAllCatalystProposalResponse,
     RetrieveAllProposalsResponse, RetrieveQuantProposalResponse, RejectProposalRequest, RetrieveThesesProposalResponse,
+    RetrieveCatalystProposalResponse,
 )
 from app.enums.ErrorEnum import ErrorEnum
 from app.enums.ProposalEnum import ProposalStatusEnum
@@ -119,6 +120,36 @@ async def reject_quant_proposal(
         proposal_id: str, payload: RejectProposalRequest, current_user: User = Depends(get_current_user),
         proposal_service: ProposalService = Depends(get_proposal_service)):
     proposal = await proposal_service.reject_quant_proposal(
+        proposal_id=proposal_id,
+        user_id=current_user.user_id,
+        rejection_reason=payload.rejection_reason,
+    )
+    return DataResponse(result=proposal)
+
+# Catalyst Proposal
+@router.put("/catalyst/{proposal_id}/approve", response_model=DataResponse[RetrieveCatalystProposalResponse],
+            responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                       404: {"model": ErrorResponse, "description": ErrorEnum.CATALYST_PROPOSAL_NOT_FOUND.error_code},
+                       409: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_STATUS.error_code},
+                       422: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_TYPE.error_code}
+                       })
+async def approve_catalyst_proposal(
+        proposal_id: str, current_user: User = Depends(get_current_user),
+        proposal_service: ProposalService = Depends(get_proposal_service)):
+    proposal = await proposal_service.approve_catalyst_proposal(proposal_id=proposal_id, user_id=current_user.user_id)
+    return DataResponse(result=proposal)
+
+
+@router.put("/catalyst/{proposal_id}/reject", response_model=DataResponse[RetrieveCatalystProposalResponse],
+            responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                       404: {"model": ErrorResponse, "description": ErrorEnum.CATALYST_PROPOSAL_NOT_FOUND.error_code},
+                       409: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_STATUS.error_code},
+                       422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                       })
+async def reject_catalyst_proposal(
+        proposal_id: str, payload: RejectProposalRequest, current_user: User = Depends(get_current_user),
+        proposal_service: ProposalService = Depends(get_proposal_service)):
+    proposal = await proposal_service.reject_catalyst_proposal(
         proposal_id=proposal_id,
         user_id=current_user.user_id,
         rejection_reason=payload.rejection_reason,
