@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from app.websocket import router
+from app.websocket import ws_router
 from app.api.v1.router import v1_router
 from app.config import settings
 from app.database_registry import init_database_engine
