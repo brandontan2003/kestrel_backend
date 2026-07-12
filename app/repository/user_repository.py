@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
 from app.config import get_db
+from app.dto.telegram import UpdateTelegramDetailRequest
 from app.models.users import User
 
 
@@ -27,6 +30,15 @@ class UserRepository:
     async def create_user(self, email: str, username: str, password_hash: str) -> User:
         user = User(email=email, username=username, password_hash=password_hash)
         self._db.add(user)
+        await self._db.flush()
+        await self._db.refresh(user)
+        return user
+
+    async def update_user_telegram_details(self, user: User, request: UpdateTelegramDetailRequest) -> User:
+        user.telegram_chat_id = request.chat_id
+        user.telegram_link_token = request.token
+        user.telegram_token_expires_at = request.expires_at
+        
         await self._db.flush()
         await self._db.refresh(user)
         return user

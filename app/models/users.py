@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, DateTime, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.core.database.auditable import Auditable
@@ -30,6 +30,10 @@ class User(Base, Auditable):
     username = Column(String, nullable=False)
     user_status = Column(String(10), default=UserStatusEnum.ACTIVE, nullable=False)
     password_hash = Column(String, nullable=False)
+    telegram_chat_id = Column(String, nullable=True)
+    telegram_link_token = Column(String(36), nullable=True)
+    telegram_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+
 
     alerts_mapping = relationship(
         ModelName.ALERT,

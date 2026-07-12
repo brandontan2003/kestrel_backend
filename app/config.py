@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    
+    TELEGRAM_BOT_TOKEN: str = ""
+    TOKEN_TTL_SECONDS: int = 600
+    TELEGRAM_BOT_URL: str = ""
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent / f".env.{env}",
