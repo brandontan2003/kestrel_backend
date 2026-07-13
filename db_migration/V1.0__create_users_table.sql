@@ -4,6 +4,9 @@ CREATE TABLE IF NOT EXISTS tbl_users (
   username VARCHAR NOT NULL,
   user_status VARCHAR(10) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  telegram_chat_id VARCHAR,
+  telegram_link_token VARCHAR(36),
+  telegram_token_expires_at TIMESTAMP WITH TIME ZONE,
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
@@ -18,6 +21,9 @@ CREATE TABLE IF NOT EXISTS tbl_users_history (
   username VARCHAR NOT NULL,
   user_status VARCHAR(10) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  telegram_chat_id VARCHAR,
+  telegram_link_token VARCHAR(36),
+  telegram_token_expires_at TIMESTAMP WITH TIME ZONE,
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
