@@ -46,21 +46,27 @@ class TelegramService:
 
         parts = text.split()
         if len(parts) != 2:
-            await bot.send_message(chat_id=chat_id, text="Send this from the Kestrel app — Settings → Connect Telegram.")
+            await self._safe_send(chat_id=chat_id, text="Send this from the Kestrel app — Settings → Connect Telegram.")
             return
 
         token = parts[1]
         user = await self._user_repo.get_by_not_expired_telegram_token(token)
 
         if not user:
-            await bot.send_message(chat_id=chat_id, text="This link has expired or is invalid. Generate a new one from Kestrel.")
+            await self._safe_send(chat_id=chat_id, text="This link has expired or is invalid. Generate a new one from Kestrel.")
             return
         
         request = UpdateTelegramDetailRequest(chat_id=str(chat_id))
         await self._user_repo.update_user_telegram_details(user, request)
 
-        await bot.send_message(chat_id=chat_id, text="✅ Kestrel connected. You'll receive alerts here.")
+        await self._safe_send(chat_id=chat_id, text="✅ Kestrel connected. You'll receive alerts here.")
         logger.info(f"Telegram linked for user {user.user_id}, chat_id={chat_id}")
 
+    async def _safe_send(self, chat_id: int, text: str) -> None:
+        try:
+            await bot.send_message(chat_id=chat_id, text=text)
+        except Exception as e:
+            logger.error(f"Telegram send failed to {chat_id}: {e}")
+    
 async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository)) -> TelegramService:
     return TelegramService(user_repo)
