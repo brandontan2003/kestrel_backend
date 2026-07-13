@@ -3,6 +3,7 @@ import uuid
 
 from fastapi import Depends
 
+from app.dto.base import SuccessResponse
 from app.dto.telegram import GenerateTokenResponse, UpdateTelegramDetailRequest
 from app.models.users import User
 from app.repository.user_repository import UserRepository, get_user_repository
@@ -25,8 +26,12 @@ class TelegramService:
             token=token,
             expires_in_seconds=token_ttl_seconds,
             instruction=f"Send `/authorize {token}` to @KestrelFinanceBot",
-            unique_link=f"={settings.TELEGRAM_BOT_URL}/?text=/authorize%20{token}"
+            unique_link=f"{settings.TELEGRAM_BOT_URL}/?text=/authorize%20{token}"
         )
+
+    async def disconnect(self, user: User) -> SuccessResponse:
+        await self._user_repo.update_user_telegram_details(user, UpdateTelegramDetailRequest())
+        return SuccessResponse()
 
 async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository)) -> TelegramService:
     return TelegramService(user_repo)
