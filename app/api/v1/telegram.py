@@ -25,3 +25,11 @@ async def generate_token(current_user: User = Depends(get_current_user), service
                           })
 async def disconnect_telegram(current_user: User = Depends(get_current_user), service: TelegramService = Depends(get_telegram_service)):
     return await service.disconnect(current_user)
+
+@router.post("/webhook", response_model=SuccessResponse,
+               responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                          422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                          })
+async def webhook(payload: dict, service: TelegramService = Depends(get_telegram_service)):
+    await service.handle_webhook(payload);
+    return SuccessResponse()

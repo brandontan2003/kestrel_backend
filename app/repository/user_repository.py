@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,6 +43,14 @@ class UserRepository:
         await self._db.refresh(user)
         return user
 
+    async def get_by_not_expired_telegram_token(self, token: str) -> User | None:
+        result = await self._db.execute(
+            select(User).where(
+                User.telegram_link_token == token,
+                User.telegram_token_expires_at > datetime.now(timezone.utc),
+            )
+        )
+        return result.scalar_one_or_none()
 
 async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepository(db)
