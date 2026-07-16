@@ -1,0 +1,104 @@
+"""Adapter between backend ORM models and the vendored ML `pipeline` package.
+
+The two sides disagree on casing and shape:
+
+  * backend enums are UPPERCASE (`ANY`, `NONE_REQUIRED`); the ML evaluator wants
+    lowercase (`any`, `none_required`) and lowercase catalyst states.
+  * backend rows are SQLAlchemy models; the pipeline wants plain dicts.
+
+Everything that translates one to the other lives here, so the scheduler reads
+as the clean four-call sequence the ML README describes.
+"""
+from __future__ import annotations
+
+from app.models import Catalyst, QuantCondition, Theses
+
+# ML contract states are lowercase (pipeline.catalysts.CatalystState).
+_DEFAULT_CATALYST_STATE = "unconfirmed"
+
+
+def normalize_state(state: str | None) -> str:
+    """Backend catalyst state -> ML lowercase state string (defensive)."""
+    return (state or _DEFAULT_CATALYST_STATE).strip().lower()
+
+
+def enabled_quant_conditions(thesis: Theses) -> list[QuantCondition]:
+    """Ordered, enabled quant rows — the single source of order for BOTH the
+    thesis dict and `quant_service.evaluate_conditions`, so they align 1:1."""
+    return [q for q in thesis.quant_conditions_mapping if q.enabled]
+
+
+def enabled_catalysts(thesis: Theses) -> list[Catalyst]:
+    return [c for c in thesis.catalyst_mapping if c.enabled]
+
+
+def build_thesis_dict(thesis: Theses, quant_conditions: list[QuantCondition],
+                      catalysts: list[Catalyst]) -> dict:
+    """Assemble the `thesis` dict `evaluator.evaluate` expects.
+
+    `quant_conditions` is passed in (not re-read) so its order is identical to
+    the one used to build `quant_results` — the evaluator aligns them by index.
+    """
+    return {
+        "ticker": thesis.stocks_mapping.ticker,
+        "quant_mode": thesis.quant_mode.lower(),        # "ANY" -> "any"
+        "catalyst_mode": thesis.catalyst_mode.lower(),  # "NONE_REQUIRED" -> "none_required"
+        "quant_conditions": [
+            {
+                "id": q.quant_condition_id,
+                "metric": q.metric,
+                "operator": q.operator,
+                "value": float(q.value),
+                "enabled": True,
+            }
+            for q in quant_conditions
+        ],
+        "catalysts": [
+            {"id": c.catalyst_id, "description": c.description, "enabled": True}
+            for c in catalysts
+        ],
+    }
+
+
+def quant_detail(quant_conditions: list[QuantCondition], quant_results: list[dict]) -> list[dict]:
+    """Per-condition breakdown to persist alongside the evaluation.
+
+    The vendored evaluator only returns a summary `quant_ok`; this pairs each
+    condition with the live value + pass/fail it was judged on, so the UI can
+    show the actual metric value instead of a dash. Aligned by position (same
+    order the thesis dict + quant_results were built from).
+    """
+    return [
+        {
+            "quant_condition_id": q.quant_condition_id,
+            "metric": q.metric,
+            "operator": q.operator,
+            "threshold": float(q.value),
+            "value": r.get("value"),
+            "passes": r.get("passes"),
+        }
+        for q, r in zip(quant_conditions, quant_results)
+    ]
+
+
+def catalyst_defs_for_classify(catalysts: list[Catalyst]) -> list[dict]:
+    """The `catalysts` arg for `llm.classify_batch` — only id + description."""
+    return [{"id": c.catalyst_id, "description": c.description or ""} for c in catalysts]
+
+
+def verdict_to_evidence(verdict) -> dict:
+    """A `CatalystVerdict` -> the JSON dict persisted onto `Catalyst.evidence`.
+
+    `.model_dump()` already matches the README's evidence shape; wrapped here so
+    the pydantic dependency stays inside the adapter.
+    """
+    return verdict.model_dump()
+
+
+def evidence_article_ids(catalyst: Catalyst) -> set[str]:
+    """article_ids already recorded on a catalyst's evidence — the per-thesis
+    dedup set so we don't re-classify the same article across polls."""
+    evidence = catalyst.evidence or []
+    if not isinstance(evidence, list):
+        return set()
+    return {e.get("article_id") for e in evidence if isinstance(e, dict) and e.get("article_id")}

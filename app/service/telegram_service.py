@@ -11,7 +11,22 @@ from telegram import Bot
 from app.repository.user_repository import UserRepository, get_user_repository
 from app.config import settings
 
-bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+_bot: Bot | None = None
+
+
+def _get_bot() -> Bot | None:
+    """Construct the Telegram Bot lazily and cache it.
+
+    Building it at import time meant the whole app crashed on startup whenever
+    TELEGRAM_BOT_TOKEN was unset (fresh clones, CI, tests). Deferring it here lets
+    the app import and run without Telegram configured — the feature just no-ops
+    (returns None) until a token is provided.
+    """
+    global _bot
+    if _bot is None and settings.TELEGRAM_BOT_TOKEN:
+        _bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+    return _bot
+
 
 class TelegramService:
     def __init__(self, user_repo: UserRepository):
@@ -63,6 +78,10 @@ class TelegramService:
         logger.info(f"Telegram linked for user {user.user_id}, chat_id={chat_id}")
 
     async def _safe_send(self, chat_id: int, text: str) -> None:
+        bot = _get_bot()
+        if bot is None:
+            logger.warning("Telegram not configured (TELEGRAM_BOT_TOKEN unset); skipping message to %s", chat_id)
+            return
         try:
             await bot.send_message(chat_id=chat_id, text=text)
         except Exception as e:

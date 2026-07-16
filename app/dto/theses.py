@@ -50,7 +50,9 @@ class RetrieveCatalystResponse(BaseDTO):
     catalyst_id: str
     state: str
     description: str | None = None
-    evidence: dict[str, Any] | None = None
+    # The ML pipeline persists evidence as an append-only LIST of verdict entries;
+    # a plain dict is also tolerated for hand-authored/legacy rows.
+    evidence: list[dict[str, Any]] | dict[str, Any] | None = None
     enabled: bool
 
 

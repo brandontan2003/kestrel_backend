@@ -28,6 +28,16 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # --- ML pipeline (vendored) + orchestrator ---
+    FINNHUB_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    SCHEDULER_ENABLED: bool = False
+    SCHEDULER_INTERVAL_SECONDS: int = 3600
+    SCHEDULER_LOOKBACK_HOURS: int = 24
+    # Quant metrics cache TTL — fundamentals move slowly; caching cuts yfinance
+    # calls and gives per-cycle ticker dedup for free. 0 disables the cache.
+    QUANT_CACHE_TTL_SECONDS: int = 3600
     
     TELEGRAM_BOT_TOKEN: str = ""
     TOKEN_TTL_SECONDS: int = 600

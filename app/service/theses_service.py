@@ -5,7 +5,7 @@ from app.dto.evaluation import EvaluationResponse
 from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, RetrieveThesesResponse, \
     CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest, \
     CreateCatalystRequest, UpdateCatalystRequest, RetrieveAllEvaluationResponse, ThesesResponse
-from app.exception_handler import QuantConditionNotFoundException, StockNotFoundException, ThesesNotFoundException, \
+from app.exception_handler import QuantConditionNotFoundException, ThesesNotFoundException, \
     CatalystNotFoundException
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
@@ -74,9 +74,13 @@ class ThesesService:
         return RetrieveThesesResponse(user_id=user_id, theses=result)
 
     async def create_theses(self, user_id: str, request: CreateThesesRequest) -> CreateThesesResponse:
-        stock = await self._stock_repo.get_stock_by_ticker(request.ticker)
+        # A personal watchlist should let a user track any ticker, so first-time
+        # tickers get their stock row created here (there's no separate add-stock
+        # API). Data providers simply return "incomplete" for invalid symbols.
+        ticker = request.ticker.strip().upper()
+        stock = await self._stock_repo.get_stock_by_ticker(ticker)
         if stock is None:
-            raise StockNotFoundException()
+            stock = await self._stock_repo.create_stock(ticker)
 
         theses = await self._theses_repo.create_theses(
             user_id=user_id,
