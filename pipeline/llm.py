@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import hashlib
 import html
-import logging
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -31,9 +30,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.logger import logger
 from pipeline.news import Article
-
-log = logging.getLogger(__name__)
 
 PASS1_MODEL = "gpt-5.4-mini"   # cheap relevance filter (~$0.75/$4.50 per MTok)
 PASS2_MODEL = "gpt-5.4"        # reasoning + quoting (~$2.50/$15 per MTok)
@@ -102,16 +100,16 @@ def classify_batch(articles: list[Article], catalysts: list[dict]) -> list[Catal
         return []
 
     pairs = pass1_relevance(articles, catalysts)
-    log.info("pass1: %d/%d articles kept (%d pairs)",
-             len({a.id for a, _ in pairs}), len(articles), len(pairs))
+    logger.info("pass1: %d/%d articles kept (%d pairs)",
+                len({a.id for a, _ in pairs}), len(articles), len(pairs))
 
     verdicts: list[CatalystVerdict] = []
     for article, catalyst in pairs:
         try:
             verdicts.append(pass2_confirm(article, catalyst))
         except Exception as exc:
-            log.warning("pass2 failed for article %s / catalyst %s: %s",
-                        article.id[:12], catalyst.get("id"), exc)
+            logger.warning("pass2 failed for article %s / catalyst %s: %s",
+                           article.id[:12], catalyst.get("id"), exc)
     return verdicts
 
 

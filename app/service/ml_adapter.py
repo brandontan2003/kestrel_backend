@@ -12,9 +12,10 @@ as the clean four-call sequence the ML README describes.
 from __future__ import annotations
 
 from app.models import Catalyst, QuantCondition, Theses
+from common.enums.CatalystEnum import CatalystState
+from common.enums.ThesesEnum import CatalystModeEnum, QuantModeEnum
 
-# ML contract states are lowercase (pipeline.catalysts.CatalystState).
-_DEFAULT_CATALYST_STATE = "unconfirmed"
+_DEFAULT_CATALYST_STATE = CatalystState.UNCONFIRMED.value
 
 
 def normalize_state(state: str | None) -> str:
@@ -41,8 +42,11 @@ def build_thesis_dict(thesis: Theses, quant_conditions: list[QuantCondition],
     """
     return {
         "ticker": thesis.stocks_mapping.ticker,
-        "quant_mode": thesis.quant_mode.lower(),        # "ANY" -> "any"
-        "catalyst_mode": thesis.catalyst_mode.lower(),  # "NONE_REQUIRED" -> "none_required"
+        # Passed through in the backend's native UPPERCASE — the evaluator
+        # normalizes casing itself. Round-tripped through the enum so an unknown
+        # mode fails here rather than reaching the evaluator.
+        "quant_mode": QuantModeEnum(thesis.quant_mode).value,
+        "catalyst_mode": CatalystModeEnum(thesis.catalyst_mode).value,
         "quant_conditions": [
             {
                 "id": q.quant_condition_id,

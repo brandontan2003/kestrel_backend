@@ -14,7 +14,6 @@ Usage (host, with Postgres running via docker compose):
   # full (thesis has a catalyst): also export FINNHUB_API_KEY and OPENAI_API_KEY
 """
 import asyncio
-import logging
 import warnings
 
 # yfinance internals emit noisy pandas deprecation warnings — not our code, harmless.
@@ -26,13 +25,9 @@ except Exception:
     pass
 
 from app.config import settings
+from app.core.logger import logger  # noqa: F401 — import configures root logging
 from app.database_registry import init_database_engine
 from app.service.scheduler_service import scheduler
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
 
 
 async def main() -> None:
