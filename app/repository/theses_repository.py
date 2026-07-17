@@ -66,12 +66,12 @@ class ThesesRepository:
         result = await self._db.execute(select(Theses).where(Theses.theses_id == theses_id))
         return result.scalar_one_or_none()
 
-    async def get_all_tracking_theses(self) -> list[Theses]:
-        """Every actively-tracked thesis, across all users — the scheduler's work
-        list. Relationships (stock, quant_conditions, catalysts) load eagerly via
-        the models' lazy=selectin, so the caller can read them without extra awaits."""
+    async def get_all_theses_by_status(self, status: ThesesStatusEnum) -> list[Theses]:
+        """Every thesis in `status`, across all users — the caller decides which.
+        Relationships (stock, quant_conditions, catalysts) load eagerly via the
+        models' lazy=selectin, so the caller can read them without extra awaits."""
         result = await self._db.execute(
-            select(Theses).where(Theses.theses_status == ThesesStatusEnum.TRACKING)
+            select(Theses).where(Theses.theses_status == status)
         )
         return list(result.scalars().all())
 

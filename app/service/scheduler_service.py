@@ -26,6 +26,7 @@ from app.repository.evaluation_repository import EvaluationRepository
 from app.repository.theses_repository import ThesesRepository
 from app.service import ml_adapter, quant_service
 from app.websocket.connection_manager import manager
+from common.enums.ThesesEnum import ThesesStatusEnum
 
 from pipeline import catalysts, evaluator, llm, news
 
@@ -79,7 +80,7 @@ class SchedulerService:
         session_maker = get_sessionmaker()
         async with session_maker() as session:
             theses_repo = ThesesRepository(session)
-            theses = await theses_repo.get_all_tracking_theses()
+            theses = await theses_repo.get_all_theses_by_status(ThesesStatusEnum.TRACKING)
             logger.info("scheduler cycle: %d tracking theses", len(theses))
 
         # Process each thesis in its own session so one failure/rollback is isolated.
