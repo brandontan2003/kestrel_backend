@@ -42,10 +42,11 @@ def build_thesis_dict(thesis: Theses, quant_conditions: list[QuantCondition],
     """
     return {
         "ticker": thesis.stocks_mapping.ticker,
-        # Round-tripped through the enum so an unknown mode fails here rather than
-        # reaching the evaluator as a silently-wrong lowercase string.
-        "quant_mode": QuantModeEnum(thesis.quant_mode).value.lower(),
-        "catalyst_mode": CatalystModeEnum(thesis.catalyst_mode).value.lower(),
+        # Passed through in the backend's native UPPERCASE — the evaluator
+        # normalizes casing itself. Round-tripped through the enum so an unknown
+        # mode fails here rather than reaching the evaluator.
+        "quant_mode": QuantModeEnum(thesis.quant_mode).value,
+        "catalyst_mode": CatalystModeEnum(thesis.catalyst_mode).value,
         "quant_conditions": [
             {
                 "id": q.quant_condition_id,

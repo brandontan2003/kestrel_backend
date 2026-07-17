@@ -82,10 +82,22 @@ def evaluate(thesis: dict, quant_results: list[dict], catalyst_states: dict[str,
     }
 
 
+def _normalize_mode(mode: str | None) -> str:
+    """Modes are matched as lowercase strings, so accept any casing.
+
+    Without this an unrecognised casing (e.g. the backend's UPPERCASE enum
+    values, "ANY") silently misses its branch and falls through to the "all"
+    default — flipping a firing thesis to not_met with no error. Normalising
+    here keeps the contract robust rather than case-sensitive.
+    """
+    return (mode or "all").strip().lower()
+
+
 # --------------------------------------------------------------------------- #
 # Quant side — three-valued.
 # --------------------------------------------------------------------------- #
 def _eval_quant(mode: str, conditions: list[dict], results: list[dict]) -> tuple[str, list[str]]:
+    mode = _normalize_mode(mode)
     enabled = [(c, r) for c, r in _align(conditions, results) if c.get("enabled", True)]
     if not enabled:
         return OK, []  # no quant conditions gate this thesis
@@ -133,6 +145,7 @@ def _unknown_blockers(items: list[tuple[dict, dict]]) -> list[str]:
 # Catalyst side — boolean (a catalyst always has a definite state).
 # --------------------------------------------------------------------------- #
 def _eval_catalysts(mode: str, catalyst_defs: list[dict], states: dict[str, str]) -> tuple[bool, list[str]]:
+    mode = _normalize_mode(mode)
     if mode == "none_required":
         return True, []
 
