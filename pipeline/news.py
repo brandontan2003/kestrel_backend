@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import hashlib
 import html
-import logging
 import os
 import time
 from dataclasses import dataclass
@@ -21,7 +20,7 @@ from typing import Callable, Iterable
 
 import requests
 
-log = logging.getLogger(__name__)
+from app.core.logger import logger
 
 FINNHUB_BASE = "https://finnhub.io/api/v1"
 
@@ -97,7 +96,7 @@ def fetch(
         try:
             collected.extend(a for a in _ADAPTERS[name](ticker, since, until) if in_window(a))
         except Exception as exc:  # one bad source shouldn't sink the rest
-            log.warning("news source %r failed for %s: %s", name, ticker, exc)
+            logger.warning("news source %r failed for %s: %s", name, ticker, exc)
             failures.append((name, exc))
 
     if failures and len(failures) == len(sources):

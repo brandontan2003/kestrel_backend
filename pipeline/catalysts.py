@@ -19,21 +19,16 @@ drive it with plain stubs.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import Protocol
 
-
-class CatalystState(str, Enum):
-    """str-valued so it serializes straight to JSON / the DB `state` column."""
-    UNCONFIRMED = "unconfirmed"
-    RUMORED = "rumored"
-    CONFIRMED = "confirmed"
-    INVALIDATED = "invalidated"
+# Re-exported for `from pipeline.catalysts import CatalystState` callers: this
+# module owns the transition *rules*, `common` owns the vocabularies.
+from common.enums.CatalystEnum import CatalystProposal, CatalystState
 
 
 # The proposal vocabulary Pass 2 emits (llm.py CatalystVerdict.proposed_state).
-# "no_change" means "this article bears on the catalyst but doesn't move it".
-PROPOSALS = frozenset({"no_change", "rumored", "confirmed", "invalidated"})
+# Derived from the enum so the two can never drift apart.
+PROPOSALS = frozenset(p.value for p in CatalystProposal)
 
 # Source categories credible enough to *confirm* or *invalidate*. Speculation
 # (analyst guesses, "sources say") can only ever raise a rumor.
@@ -47,7 +42,7 @@ class VerdictLike(Protocol):
     imports the OpenAI SDK). Anything with these two attributes works —
     the real CatalystVerdict, or a test stub.
     """
-    proposed_state: str   # one of PROPOSALS
+    proposed_state: str   # a CatalystProposal value
     source_kind: str      # "primary" | "reporting" | "speculation"
 
 
@@ -95,28 +90,31 @@ def apply(current: CatalystState | str, verdict: VerdictLike) -> Transition:
         catalyst back, and only a fresh `confirmed` can revive an invalidated one.
     """
     state = CatalystState(current)
-    proposed = verdict.proposed_state
-    if proposed not in PROPOSALS:
-        raise ValueError(f"unknown proposed_state {proposed!r}; expected one of {sorted(PROPOSALS)}")
+    try:
+        proposed = CatalystProposal(verdict.proposed_state)
+    except ValueError:
+        raise ValueError(
+            f"unknown proposed_state {verdict.proposed_state!r}; expected one of {sorted(PROPOSALS)}"
+        ) from None
 
     credible = verdict.source_kind in CREDIBLE_SOURCES
 
-    if proposed == "no_change":
+    if proposed is CatalystProposal.NO_CHANGE:
         return _stay(state, "article bears on the catalyst but does not move it")
 
-    if proposed == "invalidated":
+    if proposed is CatalystProposal.INVALIDATED:
         if not credible:
             return _stay(state, "invalidation from a speculative source — ignored")
         return _to(state, CatalystState.INVALIDATED, "contradicted by a credible source")
 
-    if proposed == "confirmed":
+    if proposed is CatalystProposal.CONFIRMED:
         if not credible:
             # A speculative "confirmation" is really just a rumor.
-            proposed = "rumored"
+            proposed = CatalystProposal.RUMORED
         else:
             return _to(state, CatalystState.CONFIRMED, "confirmed by a credible source")
 
-    # proposed == "rumored" (either directly, or downgraded from a speculative confirm)
+    # proposed is RUMORED (either directly, or downgraded from a speculative confirm)
     if state is CatalystState.UNCONFIRMED:
         return _to(state, CatalystState.RUMORED, "raised to rumored")
     # A rumor cannot downgrade a confirmation, nor revive an invalidated catalyst.

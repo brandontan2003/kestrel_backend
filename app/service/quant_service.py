@@ -11,14 +11,12 @@ the evaluator aligns 1:1 with `thesis["quant_conditions"]`:
 `fetch_metrics` (network) and `evaluate_conditions` (pure) are split so the
 comparison logic is testable without hitting yfinance.
 """
-import logging
 import time
 
 import requests
 
 from app.config import settings
-
-log = logging.getLogger(__name__)
+from app.core.logger import logger
 
 FINNHUB_BASE = "https://finnhub.io/api/v1"
 
@@ -148,11 +146,11 @@ def _fetch_with_retry(ticker: str) -> dict[str, float | None]:
         except Exception as exc:
             if _is_rate_limited(exc) and attempt < _MAX_RETRIES:
                 delay = _BACKOFF_BASE_SECONDS * (2 ** attempt)
-                log.warning("quant: %s rate-limited — backing off %.1fs (attempt %d/%d)",
-                            ticker, delay, attempt + 1, _MAX_RETRIES + 1)
+                logger.warning("quant: %s rate-limited — backing off %.1fs (attempt %d/%d)",
+                               ticker, delay, attempt + 1, _MAX_RETRIES + 1)
                 time.sleep(delay)
                 continue
-            log.warning("quant: yfinance lookup failed for %s: %s", ticker, exc)
+            logger.warning("quant: yfinance lookup failed for %s: %s", ticker, exc)
             return _all_none()
     return _all_none()
 
@@ -171,7 +169,7 @@ def fetch_metrics(ticker: str, ttl: float | None = None) -> dict[str, float | No
 
     cached = _cache.get(ticker)
     if cached is not None and cached[0] > now:
-        log.debug("quant: cache hit for %s", ticker)
+        logger.debug("quant: cache hit for %s", ticker)
         return cached[1]
 
     values = _fetch_with_retry(ticker)
@@ -201,7 +199,7 @@ def evaluate_conditions(conditions, metric_values: dict[str, float | None]) -> l
         op = _OPS.get(c.operator)
         if value is None or op is None:
             if op is None:
-                log.warning("quant: unsupported operator %r on metric %r", c.operator, c.metric)
+                logger.warning("quant: unsupported operator %r on metric %r", c.operator, c.metric)
             results.append({"value": value, "passes": None})
             continue
         threshold = float(c.value)

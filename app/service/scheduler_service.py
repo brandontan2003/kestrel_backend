@@ -15,10 +15,10 @@ gated by SCHEDULER_ENABLED so dev/test processes stay quiet by default.
 from __future__ import annotations
 
 import asyncio
-import logging
 from datetime import datetime, timedelta, timezone
 
 from app.config import settings
+from app.core.logger import logger
 from app.database_registry import get_sessionmaker
 from app.models import Theses
 from app.repository.catalyst_repository import CatalystRepository
@@ -28,8 +28,6 @@ from app.service import ml_adapter, quant_service
 from app.websocket.connection_manager import manager
 
 from pipeline import catalysts, evaluator, llm, news
-
-log = logging.getLogger(__name__)
 
 # Verdicts whose article never confirms anything don't need persisting as evidence
 # unless they bear on the catalyst; the state machine still returns a transition.
@@ -44,14 +42,14 @@ class SchedulerService:
     # ----- lifecycle -------------------------------------------------------- #
     def start(self) -> None:
         if not settings.SCHEDULER_ENABLED:
-            log.info("scheduler disabled (SCHEDULER_ENABLED=false) — not starting")
+            logger.info("scheduler disabled (SCHEDULER_ENABLED=false) — not starting")
             return
         if self._task is not None:
             return
         self._stopping.clear()
         self._task = asyncio.create_task(self._loop(), name="kestrel-scheduler")
-        log.info("scheduler started: every %ss, lookback %sh",
-                 settings.SCHEDULER_INTERVAL_SECONDS, settings.SCHEDULER_LOOKBACK_HOURS)
+        logger.info("scheduler started: every %ss, lookback %sh",
+                    settings.SCHEDULER_INTERVAL_SECONDS, settings.SCHEDULER_LOOKBACK_HOURS)
 
     async def stop(self) -> None:
         if self._task is None:
@@ -63,14 +61,14 @@ class SchedulerService:
         except asyncio.CancelledError:
             pass
         self._task = None
-        log.info("scheduler stopped")
+        logger.info("scheduler stopped")
 
     async def _loop(self) -> None:
         while not self._stopping.is_set():
             try:
                 await self.run_once()
             except Exception:  # a bad cycle must never kill the loop
-                log.exception("scheduler cycle failed")
+                logger.exception("scheduler cycle failed")
             try:
                 await asyncio.wait_for(self._stopping.wait(), timeout=settings.SCHEDULER_INTERVAL_SECONDS)
             except asyncio.TimeoutError:
@@ -82,7 +80,7 @@ class SchedulerService:
         async with session_maker() as session:
             theses_repo = ThesesRepository(session)
             theses = await theses_repo.get_all_tracking_theses()
-            log.info("scheduler cycle: %d tracking theses", len(theses))
+            logger.info("scheduler cycle: %d tracking theses", len(theses))
 
         # Process each thesis in its own session so one failure/rollback is isolated.
         for thesis in theses:
@@ -91,7 +89,7 @@ class SchedulerService:
                     await self._process_thesis(session, thesis.theses_id)
                     await session.commit()
             except Exception:
-                log.exception("scheduler: thesis %s failed", thesis.theses_id)
+                logger.exception("scheduler: thesis %s failed", thesis.theses_id)
 
     async def _process_thesis(self, session, theses_id: str) -> None:
         theses_repo = ThesesRepository(session)
@@ -119,7 +117,7 @@ class SchedulerService:
             for c in catalyst_rows:
                 seen |= ml_adapter.evidence_article_ids(c)
             fresh = [a for a in articles if a.id not in seen]
-            log.info("thesis %s (%s): %d articles, %d fresh", theses_id, ticker, len(articles), len(fresh))
+            logger.info("thesis %s (%s): %d articles, %d fresh", theses_id, ticker, len(articles), len(fresh))
 
             if fresh:
                 verdicts = llm.classify_batch(fresh, ml_adapter.catalyst_defs_for_classify(catalyst_rows))
@@ -170,8 +168,8 @@ class SchedulerService:
         Phase 2 proper still owns: persisting an Alert row + the frontend
         consuming this event. The outbound WS infra already exists, so we use it.
         """
-        log.info("SIGNAL fired for thesis %s (%s): %s",
-                 thesis.theses_id, result.get("ticker"), result.get("reason"))
+        logger.info("SIGNAL fired for thesis %s (%s): %s",
+                    thesis.theses_id, result.get("ticker"), result.get("reason"))
         try:
             await manager.push_to_user(
                 thesis.user_id,
@@ -180,7 +178,7 @@ class SchedulerService:
                  "reason": result.get("reason"), "evaluated_at": result.get("evaluated_at")},
             )
         except Exception:
-            log.warning("scheduler: WS push failed for user %s", thesis.user_id)
+            logger.warning("scheduler: WS push failed for user %s", thesis.user_id)
 
 
 scheduler = SchedulerService()
