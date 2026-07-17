@@ -4,7 +4,7 @@ from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesPr
     RetrieveAllQuantProposalResponse, RetrieveQuantProposalResponse, RetrieveAllCatalystProposalResponse, \
     RetrieveCatalystProposalResponse, RetrieveAllProposalsResponse
 from app.dto.theses import UpdateQuantConditionRequest, UpdateCatalystRequest
-from app.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
+from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.exception_handler import QuantProposalNotFoundException, InvalidProposalStatusException, \
     QuantConditionNotFoundException, InvalidProposalTypeException, ThesesProposalNotFoundException, \
     CatalystProposalNotFoundException, CatalystNotFoundException

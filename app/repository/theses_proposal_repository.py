@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select, func
 
 from app.config import get_db
-from app.enums.ProposalEnum import ProposalStatusEnum
+from common.enums.ProposalEnum import ProposalStatusEnum
 from app.models import ThesesProposal
 
 

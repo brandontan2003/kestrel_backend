@@ -4,7 +4,7 @@ from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
 from app.dto.theses import UpdateThesesRequest
-from app.enums.ThesesEnum import ThesesStatusEnum
+from common.enums.ThesesEnum import ThesesStatusEnum
 from app.models import Theses
 
 

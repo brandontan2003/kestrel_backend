@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 
 from app.dto.base import BaseDTO
-from app.enums.AlertsEnum import AlertStatusEnum, AlertChannelsEnum
+from common.enums.AlertsEnum import AlertStatusEnum, AlertChannelsEnum
 
 
 class EvaluationResponse(BaseDTO):

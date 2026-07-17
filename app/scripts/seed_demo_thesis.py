@@ -25,7 +25,7 @@ from sqlalchemy import select, text
 
 from app.config import settings
 from app.database_registry import get_sessionmaker, init_database_engine
-from app.enums.ThesesEnum import CatalystModeEnum, QuantModeEnum
+from common.enums.ThesesEnum import CatalystModeEnum, QuantModeEnum
 from app.models import Catalyst, QuantCondition, Stock, Theses, User
 
 

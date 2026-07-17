@@ -5,7 +5,7 @@ from pydantic import field_validator
 
 from app.dto.base import BaseDTO
 from app.dto.evaluation import EvaluationResponse
-from app.enums.ThesesEnum import QuantModeEnum, CatalystModeEnum, ThesesStatusEnum
+from common.enums.ThesesEnum import QuantModeEnum, CatalystModeEnum, ThesesStatusEnum
 
 VALID_OPERATORS = {"<", ">", "<=", ">=", "=="}
 
