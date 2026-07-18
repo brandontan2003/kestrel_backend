@@ -6,7 +6,7 @@ from app.dto.theses import CreateQuantConditionRequest, CreateThesesRequest, Ret
     CreateThesesResponse, RetrieveAllThesesResponse, UpdateThesesRequest, UpdateQuantConditionRequest, \
     CreateCatalystRequest, UpdateCatalystRequest, RetrieveAllEvaluationResponse, ThesesResponse
 from app.exception_handler import QuantConditionNotFoundException, ThesesNotFoundException, \
-    CatalystNotFoundException
+    CatalystNotFoundException, StockNotFoundException
 from app.repository.catalyst_repository import CatalystRepository, get_catalyst_repository
 from app.repository.evaluation_repository import EvaluationRepository, get_evaluation_repository
 from app.repository.quant_condition_repository import QuantConditionRepository, get_quant_condition_repository
@@ -80,7 +80,7 @@ class ThesesService:
         ticker = request.ticker.strip().upper()
         stock = await self._stock_repo.get_stock_by_ticker(ticker)
         if stock is None:
-            stock = await self._stock_repo.create_stock(ticker)
+            raise StockNotFoundException()
 
         theses = await self._theses_repo.create_theses(
             user_id=user_id,
