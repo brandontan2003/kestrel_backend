@@ -1,15 +1,15 @@
-from datetime import datetime, timedelta, timezone
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends
+from telegram import Bot
 
+from app.config import settings
+from app.core.logger import logger
 from app.dto.base import SuccessResponse
 from app.dto.telegram import GenerateTokenResponse, UpdateTelegramDetailRequest
 from app.models.users import User
-from app.core.logger import logger
-from telegram import Bot
 from app.repository.user_repository import UserRepository, get_user_repository
-from app.config import settings
 
 _bot: Bot | None = None
 
@@ -36,7 +36,7 @@ class TelegramService:
         token = str(uuid.uuid4())
         token_ttl_seconds = settings.TOKEN_TTL_SECONDS
         telegram_token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=token_ttl_seconds)
-        
+
         request = UpdateTelegramDetailRequest(token=token, expires_at=telegram_token_expires_at)
         await self._user_repo.update_user_telegram_details(user, request)
 
@@ -68,9 +68,10 @@ class TelegramService:
         user = await self._user_repo.get_by_not_expired_telegram_token(token)
 
         if not user:
-            await self._safe_send(chat_id=chat_id, text="This link has expired or is invalid. Generate a new one from Kestrel.")
+            await self._safe_send(chat_id=chat_id,
+                                  text="This link has expired or is invalid. Generate a new one from Kestrel.")
             return
-        
+
         request = UpdateTelegramDetailRequest(chat_id=str(chat_id))
         await self._user_repo.update_user_telegram_details(user, request)
 
@@ -86,6 +87,7 @@ class TelegramService:
             await bot.send_message(chat_id=chat_id, text=text)
         except Exception as e:
             logger.error(f"Telegram send failed to {chat_id}: {e}")
-    
+
+
 async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository)) -> TelegramService:
     return TelegramService(user_repo)

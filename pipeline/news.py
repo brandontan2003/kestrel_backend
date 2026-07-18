@@ -15,7 +15,7 @@ import html
 import os
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Callable, Iterable
 
 import requests

@@ -5,9 +5,9 @@ from sqlalchemy.orm import relationship
 
 from app.core.database.auditable import Auditable
 from app.core.database.history_decorator import register_history
-from common.enums.AlertsEnum import AlertStatusEnum
 from app.enums.SqlalchemyEnum import ModelName, LAZY_SELECTIN
 from app.models.base import Base
+from common.enums.AlertsEnum import AlertStatusEnum
 
 
 class AlertHistory(Base, Auditable):

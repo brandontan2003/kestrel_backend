@@ -5,9 +5,9 @@ from sqlalchemy.orm import relationship
 
 from app.core.database.auditable import Auditable
 from app.core.database.history_decorator import register_history
-from common.enums.ProposalEnum import ProposalStatusEnum
 from app.enums.SqlalchemyEnum import LAZY_SELECTIN, ModelName
 from app.models.base import Base
+from common.enums.ProposalEnum import ProposalStatusEnum
 
 
 class ThesesProposalHistory(Base, Auditable):

@@ -34,7 +34,6 @@ class User(Base, Auditable):
     telegram_link_token = Column(String(36), nullable=True)
     telegram_token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
-
     alerts_mapping = relationship(
         ModelName.ALERT,
         back_populates="users_mapping",

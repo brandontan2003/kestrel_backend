@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # Quant metrics cache TTL — fundamentals move slowly; caching cuts yfinance
     # calls and gives per-cycle ticker dedup for free. 0 disables the cache.
     QUANT_CACHE_TTL_SECONDS: int = 3600
-    
+
     TELEGRAM_BOT_TOKEN: str = ""
     TOKEN_TTL_SECONDS: int = 600
     TELEGRAM_BOT_URL: str = ""

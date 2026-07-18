@@ -83,6 +83,7 @@ class RetrieveThesesResponse(BaseDTO):
     user_id: str
     theses: ThesesResponse
 
+
 class RetrieveAllThesesResponse(BaseDTO):
     user_id: str
     theses: list[ThesesResponse]

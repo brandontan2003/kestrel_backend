@@ -14,4 +14,3 @@ class GenerateTokenResponse(BaseDTO):
     expires_in_seconds: int
     instruction: str
     unique_link: str
-    

@@ -16,18 +16,20 @@ Usage (host, with Postgres running via docker compose):
 import asyncio
 import warnings
 
-# yfinance internals emit noisy pandas deprecation warnings — not our code, harmless.
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-try:
-    from pandas.errors import Pandas4Warning
-    warnings.filterwarnings("ignore", category=Pandas4Warning)
-except Exception:
-    pass
+from pandas.errors import Pandas4Warning
 
 from app.config import settings
 from app.core.logger import logger  # noqa: F401 — import configures root logging
 from app.database_registry import init_database_engine
 from app.service.scheduler_service import scheduler
+
+# yfinance internals emit noisy pandas deprecation warnings — not our code, harmless.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+try:
+
+    warnings.filterwarnings("ignore", category=Pandas4Warning)
+except Exception:
+    pass
 
 
 async def main() -> None:

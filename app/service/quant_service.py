@@ -22,8 +22,8 @@ FINNHUB_BASE = "https://finnhub.io/api/v1"
 
 # --- rate-limit backoff + cache tunables ---
 _RATE_LIMIT_MARKERS = ("too many requests", "rate limit", "rate-limit", "429")
-_MAX_RETRIES = 2               # retries AFTER the first attempt (3 tries total)
-_BACKOFF_BASE_SECONDS = 1.0    # 1s, 2s exponential; only on rate-limit errors
+_MAX_RETRIES = 2  # retries AFTER the first attempt (3 tries total)
+_BACKOFF_BASE_SECONDS = 1.0  # 1s, 2s exponential; only on rate-limit errors
 
 # Per-ticker TTL cache: ticker -> (expires_at_monotonic, values). A module-level
 # dict is fine — the scheduler runs on a single event loop. Within one cycle this

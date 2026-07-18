@@ -115,7 +115,7 @@ def _eval_quant(mode: str, conditions: list[dict], results: list[dict]) -> tuple
 
     if mode == "any":
         if passed:
-            return OK, []                       # one hit is enough
+            return OK, []  # one hit is enough
         if unknown:
             return UNKNOWN, _unknown_blockers(unknown)
         return FAIL, ["no quant condition met (any-mode): " + "; ".join(_fail_blockers(failed))]
