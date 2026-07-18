@@ -31,6 +31,7 @@ jobs:
           flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 app tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+# TODO: Include when unit test is ready
 #      - name: Test with pytest
 #        run: |
 #          pytest
@@ -72,11 +73,12 @@ jobs:
       - name: Run Flyway migrations against production DB
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}/db/migrations:/flyway/sql \
+            -v ${{ github.workspace }}/db_migration:/flyway/sql \
             flyway/flyway:latest \
             -url="${{ secrets.PROD_FLYWAY_URL }}" \
             -user="${{ secrets.PROD_DB_USER }}" \
             -password="${{ secrets.PROD_DB_PASSWORD }}" \
+            -schemas="${{ secrets.PROD_DB_SCHEMA }}" \
             -locations=filesystem:/flyway/sql \
             -connectRetries=5 \
             migrate
