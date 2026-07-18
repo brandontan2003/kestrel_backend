@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from enums.ThesesEnum import QuantModeEnum, CatalystModeEnum
 from pipeline import catalysts
 from pipeline.catalysts import CatalystState
 
@@ -47,12 +48,12 @@ def evaluate(thesis: dict, quant_results: list[dict], catalyst_states: dict[str,
     ticker = thesis.get("ticker", "?")
 
     quant_status, quant_blockers = _eval_quant(
-        thesis.get("quant_mode", "all"),
+        thesis.get("quant_mode", QuantModeEnum.ALL),
         thesis.get("quant_conditions", []),
         quant_results,
     )
     catalysts_ok, catalyst_blockers = _eval_catalysts(
-        thesis.get("catalyst_mode", "all"),
+        thesis.get("catalyst_mode", CatalystModeEnum.ALL),
         thesis.get("catalysts", []),
         catalyst_states,
     )
