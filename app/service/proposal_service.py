@@ -4,6 +4,8 @@ from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesPr
     RetrieveAllQuantProposalResponse, RetrieveQuantProposalResponse, RetrieveAllCatalystProposalResponse, \
     RetrieveCatalystProposalResponse, RetrieveAllProposalsResponse
 from app.dto.theses import UpdateQuantConditionRequest, UpdateCatalystRequest
+from common.enums.CatalystEnum import CatalystState
+from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.exception_handler import QuantProposalNotFoundException, InvalidProposalStatusException, \
     QuantConditionNotFoundException, InvalidProposalTypeException, ThesesProposalNotFoundException, \
     CatalystProposalNotFoundException, CatalystNotFoundException
@@ -121,8 +123,10 @@ class ProposalService:
                 raise QuantConditionNotFoundException()
 
             if proposal_type == ProposalTypeEnum.UPDATE:
-                request = UpdateQuantConditionRequest(metric=change["metric"], operator=change["operator"],
-                                                      value=change["value"], enabled=change["enabled"])
+                # `.get()`, not `[...]`: a partial proposed_change is a partial
+                # update (the repo skips None fields), not a KeyError.
+                request = UpdateQuantConditionRequest(metric=change.get("metric"), operator=change.get("operator"),
+                                                      value=change.get("value"), enabled=change.get("enabled"))
                 await self._quant_condition_repo.update_quant_condition(condition, request)
                 await self._quant_proposal_repo.supersede_pending_updates(
                     quant_condition_id=proposal.quant_condition_id,
@@ -159,27 +163,31 @@ class ProposalService:
         if proposal_type == ProposalTypeEnum.ADD:
             await self._catalyst_repo.create_catalyst(
                 theses_id=proposal.theses_id,
-                state=change["state"],
-                description=change["description"],
-                evidence=change["evidence"],
+                # A proposed catalyst starts where every catalyst starts: the news
+                # has to confirm it through the pipeline like any other.
+                state=change.get("state") or CatalystState.UNCONFIRMED.value,
+                description=change.get("description"),
+                evidence=change.get("evidence"),
             )
 
         else:
-            condition = await self._catalyst_repo.get_catalyst_by_id_and_user(
+            catalyst = await self._catalyst_repo.get_catalyst_by_id_and_user(
                 proposal.catalyst_id, proposal.theses_id, user_id)
-            if condition is None:
+            if catalyst is None:
                 raise CatalystNotFoundException()
 
             if proposal_type == ProposalTypeEnum.UPDATE:
-                request = UpdateCatalystRequest(state=change["state"], description=change["description"],
-                                                evidence=change["evidence"], enabled=change["enabled"])
-                await self._catalyst_repo.update_catalyst(condition, request)
+                # `.get()`, not `[...]`: a partial proposed_change is a partial
+                # update (the repo skips None fields), not a KeyError.
+                request = UpdateCatalystRequest(state=change.get("state"), description=change.get("description"),
+                                                evidence=change.get("evidence"), enabled=change.get("enabled"))
+                await self._catalyst_repo.update_catalyst(catalyst, request)
                 await self._catalyst_proposal_repo.supersede_pending_updates(
                     catalyst_id=proposal.catalyst_id,
                     approved_proposal_id=proposal_id
                 )
             elif proposal_type == ProposalTypeEnum.REMOVE:
-                await self._quant_condition_repo.delete_quant_condition(condition)
+                await self._catalyst_repo.delete_catalyst(catalyst)
             else:
                 raise InvalidProposalTypeException()
 

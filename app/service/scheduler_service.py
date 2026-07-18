@@ -21,10 +21,13 @@ from app.config import settings
 from app.core.logger import logger
 from app.database_registry import get_sessionmaker
 from app.models import Theses
+from app.repository.catalyst_proposal_repository import CatalystProposalRepository
 from app.repository.catalyst_repository import CatalystRepository
 from app.repository.evaluation_repository import EvaluationRepository
+from app.repository.quant_proposal_repository import QuantProposalRepository
 from app.repository.theses_repository import ThesesRepository
 from app.service import ml_adapter, quant_service
+from app.service.proposal_generator import ProposalGenerator
 from app.websocket.connection_manager import manager
 from common.enums.ThesesEnum import ThesesStatusEnum
 from pipeline import catalysts, evaluator, llm, news
@@ -106,6 +109,10 @@ class SchedulerService:
         by_id = {c.catalyst_id: c for c in catalyst_rows}
 
         prompt_version = _NO_PROMPT
+        # Kept in scope for the proposal reviewer below. A quant-only thesis never
+        # fetches news, and the reviewer doesn't need any to judge a threshold —
+        # so it reviews on what this sweep already paid for, never its own fetch.
+        articles: list = []
 
         # 1–3. News → classify → apply state machine (only if there are catalysts to judge)
         if catalyst_rows:
@@ -150,7 +157,7 @@ class SchedulerService:
         if prompt_version == _NO_PROMPT and previous is not None:
             prompt_version = previous.prompt_version  # keep column meaningful across quiet cycles
 
-        await eval_repo.create_evaluation(
+        evaluation = await eval_repo.create_evaluation(
             theses_id=theses_id,
             evaluation_status=result["status"],
             prompt_version=prompt_version,
@@ -159,9 +166,44 @@ class SchedulerService:
             reason=result["reason"],
         )
 
+        # 5. Review the thesis itself against what the sweep found, and queue any
+        # suggested edits for the user to approve.
+        await self._generate_proposals(session, theses_id, thesis_dict, result,
+                                       evaluation.evaluation_id, catalyst_states, articles)
+
         if result["signal"] and not was_firing:
             await self._on_signal_fired(thesis, result)
 
+    async def _generate_proposals(self, session, theses_id: str, thesis_dict: dict, result: dict,
+                                  evaluation_id: str, catalyst_states: dict, articles: list) -> None:
+        """Best-effort: the sweep's own work is what matters, so a failed review
+        is logged and dropped rather than allowed to roll back the evaluation."""
+        if not settings.PROPOSALS_ENABLED:
+            return
+        try:
+            generator = ProposalGenerator(QuantProposalRepository(session), CatalystProposalRepository(session))
+            await generator.generate(
+                theses_id=theses_id,
+                thesis_dict=thesis_dict,
+                evaluation=result,
+                evaluation_id=evaluation_id,
+                catalyst_states=catalyst_states,
+                articles=articles,
+            )
+        except Exception:
+            logger.exception("scheduler: proposal generation failed for thesis %s", theses_id)
+    async def sweep_thesis(self, theses_id: str) -> None:
+        """Re-evaluate one thesis right now, in its own session — the on-demand
+        counterpart to run_once (e.g. straight after a proposal is approved, so the
+        dashboard reflects the new conditions without waiting for the next cycle)."""
+        session_maker = get_sessionmaker()
+        try:
+            async with session_maker() as session:
+                await self._process_thesis(session, theses_id)
+                await session.commit()
+        except Exception:
+            logger.exception("sweep_thesis: thesis %s failed", theses_id)
+            
     async def _on_signal_fired(self, thesis: Theses, result: dict) -> None:
         """A thesis's signal just went true. Best-effort live push to the owner.
 

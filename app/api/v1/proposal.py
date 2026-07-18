@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, BackgroundTasks
 
 from app.core.authorization.auth_dependency import get_current_user
 from app.dto.base import DataResponse
@@ -12,6 +12,7 @@ from app.enums.ErrorEnum import ErrorEnum
 from app.models import User
 from app.service.proposal_service import get_proposal_service, ProposalService
 from common.enums.ProposalEnum import ProposalStatusEnum
+from app.service.scheduler_service import scheduler
 
 router = APIRouter(prefix="/proposals", tags=["proposals"])
 
@@ -40,7 +41,6 @@ async def retrieve_all_theses_proposal(
     theses_proposals = await service.get_all_theses_proposals(
         user_id=current_user.user_id, theses_proposal_status=status, page=page, page_size=page_size)
     return DataResponse(result=theses_proposals)
-
 
 @router.get("/quant", response_model=DataResponse[RetrieveAllQuantProposalResponse],
             responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
@@ -107,9 +107,10 @@ async def reject_theses_proposal(
                        422: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_TYPE.error_code}
                        })
 async def approve_quant_proposal(
-        proposal_id: str, current_user: User = Depends(get_current_user),
+        proposal_id: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user),
         service: ProposalService = Depends(get_proposal_service)):
     proposal = await service.approve_quant_proposal(proposal_id=proposal_id, user_id=current_user.user_id)
+    background_tasks.add_task(scheduler.sweep_thesis, proposal.theses_id)
     return DataResponse(result=proposal)
 
 
@@ -138,9 +139,10 @@ async def reject_quant_proposal(
                        422: {"model": ErrorResponse, "description": ErrorEnum.INVALID_PROPOSAL_TYPE.error_code}
                        })
 async def approve_catalyst_proposal(
-        proposal_id: str, current_user: User = Depends(get_current_user),
+        proposal_id: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user),
         service: ProposalService = Depends(get_proposal_service)):
     proposal = await service.approve_catalyst_proposal(proposal_id=proposal_id, user_id=current_user.user_id)
+    background_tasks.add_task(scheduler.sweep_thesis, proposal.theses_id)
     return DataResponse(result=proposal)
 
 
