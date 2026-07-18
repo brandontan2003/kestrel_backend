@@ -11,6 +11,21 @@ class EvaluationRepository:
     def __init__(self, db: AsyncSession):
         self._db = db
 
+    async def create_evaluation(self, theses_id: str, evaluation_status: str, prompt_version: str,
+                                results: dict, signal: bool, reason: str | None) -> Evaluation:
+        evaluation = Evaluation(
+            theses_id=theses_id,
+            evaluation_status=evaluation_status,
+            prompt_version=prompt_version,
+            results=results,
+            signal=signal,
+            reason=reason,
+        )
+        self._db.add(evaluation)
+        await self._db.flush()
+        await self._db.refresh(evaluation)
+        return evaluation
+
     async def get_latest_evaluation(self, theses_id) -> Evaluation | None:
         result = await self._db.execute(
             select(Evaluation).where(Evaluation.theses_id == theses_id).order_by(Evaluation.created_at.desc()).limit(1))

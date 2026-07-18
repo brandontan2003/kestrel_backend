@@ -4,6 +4,7 @@ WORKDIR /app
 COPY . /app
 
 RUN pip install --upgrade pip==26.1  \
+    && pip install --no-cache-dir -e ./common  \
     && pip install --no-cache-dir --upgrade -r requirements.txt  \
     && pip uninstall -y ecdsa
 

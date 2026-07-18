@@ -4,7 +4,7 @@ from sqlalchemy.sql.expression import func, select
 
 from app.config import get_db
 from app.dto.theses import UpdateThesesRequest
-from app.enums.ThesesEnum import ThesesStatusEnum
+from common.enums.ThesesEnum import ThesesStatusEnum
 from app.models import Theses
 
 
@@ -66,6 +66,15 @@ class ThesesRepository:
         result = await self._db.execute(select(Theses).where(Theses.theses_id == theses_id))
         return result.scalar_one_or_none()
 
+    async def get_all_theses_by_status(self, status: ThesesStatusEnum) -> list[Theses]:
+        """Every thesis in `status`, across all users — the caller decides which.
+        Relationships (stock, quant_conditions, catalysts) load eagerly via the
+        models' lazy=selectin, so the caller can read them without extra awaits."""
+        result = await self._db.execute(
+            select(Theses).where(Theses.theses_status == status)
+        )
+        return list(result.scalars().all())
+
     async def get_theses_by_theses_id_and_user_id(self, theses_id: str, user_id: str) -> Theses | None:
         result = await self._db.execute(
             select(Theses).where(Theses.theses_id == theses_id, Theses.user_id == user_id)
@@ -74,13 +83,15 @@ class ThesesRepository:
 
     async def get_all_theses_by_user_id(self, user_id: str, page: int, page_size: int) -> tuple[list[Theses], int]:
         offset = (page - 1) * page_size
-        count_result = await self._db.execute(select(func.count()).select_from(Theses).where(Theses.user_id == user_id))
+        # Exclude soft-deleted theses so they drop off the watchlist after removal.
+        active = (Theses.user_id == user_id) & (Theses.theses_status != ThesesStatusEnum.DELETED)
+        count_result = await self._db.execute(select(func.count()).select_from(Theses).where(active))
         total = count_result.scalar_one()
 
         # Paginated fetch
         result = await self._db.execute(
             select(Theses)
-            .where(Theses.user_id == user_id)
+            .where(active)
             .order_by(Theses.created_at.desc())
             .offset(offset)
             .limit(page_size)

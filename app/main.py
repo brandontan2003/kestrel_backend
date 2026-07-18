@@ -9,13 +9,18 @@ from app.config import settings
 from app.database_registry import init_database_engine
 from app.dto.base import HealthCheckDTO, SuccessResponse
 from app.exception_handler import register_exception_handlers
+from app.service.scheduler_service import scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_database_engine(settings.DATABASE_URL)
     await health_check()
-    yield
+    scheduler.start()  # gated by SCHEDULER_ENABLED; no-op when false
+    try:
+        yield
+    finally:
+        await scheduler.stop()
 
 
 app = FastAPI(title="Kestrel Backend API Documentation", version="1.0.0", lifespan=lifespan)

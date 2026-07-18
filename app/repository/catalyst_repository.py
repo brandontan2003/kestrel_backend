@@ -68,6 +68,21 @@ class CatalystRepository:
         await self._db.flush()
         return catalyst
 
+    async def record_verdict(self, catalyst: Catalyst, new_state: str, evidence_entry: dict,
+                             state_changed: bool) -> Catalyst:
+        """Append one classifier verdict to a catalyst's evidence trail, and
+        advance its state if the state machine changed it.
+
+        Reassigns `evidence` (rather than mutating the list in place) so
+        SQLAlchemy detects the change on the JSON column.
+        """
+        existing = catalyst.evidence if isinstance(catalyst.evidence, list) else []
+        catalyst.evidence = existing + [evidence_entry]
+        if state_changed:
+            catalyst.state = new_state
+        await self._db.flush()
+        return catalyst
+
     async def delete_catalyst(self, catalyst: Catalyst) -> None:
         catalyst.enabled = False
         await self._db.flush()
