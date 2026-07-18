@@ -74,11 +74,7 @@ class ThesesService:
         return RetrieveThesesResponse(user_id=user_id, theses=result)
 
     async def create_theses(self, user_id: str, request: CreateThesesRequest) -> CreateThesesResponse:
-        # A personal watchlist should let a user track any ticker, so first-time
-        # tickers get their stock row created here (there's no separate add-stock
-        # API). Data providers simply return "incomplete" for invalid symbols.
-        ticker = request.ticker.strip().upper()
-        stock = await self._stock_repo.get_stock_by_ticker(ticker)
+        stock = await self._stock_repo.get_stock_by_ticker(request.ticker)
         if stock is None:
             raise StockNotFoundException()
 

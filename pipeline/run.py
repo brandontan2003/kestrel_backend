@@ -86,7 +86,8 @@ def main() -> None:
             _classify(ticker, articles, args.catalyst or [])
 
 
-def _print_summary(ticker: str, articles: list[news.Article], *, lookback: timedelta, window_label: str, now: datetime) -> None:
+def _print_summary(ticker: str, articles: list[news.Article], *, lookback: timedelta, window_label: str,
+                   now: datetime) -> None:
     n = len(articles)
     print(f"\n=== {ticker} — last {window_label} ===")
     if not n:
@@ -102,7 +103,7 @@ def _print_summary(ticker: str, articles: list[news.Article], *, lookback: timed
     # Rate over the span actually covered, not the span requested — a capped
     # feed (oldest_age << days) makes n/days an undercount.
     covered_days = max((newest - oldest).total_seconds() / 86400, 1e-6)
-    capped = oldest_age < lookback * 0.9 # feed didn't reach back as far as we asked
+    capped = oldest_age < lookback * 0.9  # feed didn't reach back as far as we asked
 
     by_source: dict[str, int] = {}
     for a in articles:
@@ -111,7 +112,8 @@ def _print_summary(ticker: str, articles: list[news.Article], *, lookback: timed
     print(f"  articles:       {n}  ({n / covered_days:.1f}/day over covered span)")
     print(f"  with body text: {with_body}/{n}  ({with_body / n:.0%})   <- Pass 2 quote-rule viability")
     print(f"  newest age:     {_fmt_age(newest_age)}   <- feed staleness")
-    print(f"  oldest age:     {_fmt_age(oldest_age)}" + (f"   <- CAPPED: feed truncated well short of {window_label}" if capped else ""))
+    print(f"  oldest age:     {_fmt_age(oldest_age)}" + (
+        f"   <- CAPPED: feed truncated well short of {window_label}" if capped else ""))
     print(f"  by source:      {by_source}")
 
 

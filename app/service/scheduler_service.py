@@ -27,7 +27,6 @@ from app.repository.theses_repository import ThesesRepository
 from app.service import ml_adapter, quant_service
 from app.websocket.connection_manager import manager
 from common.enums.ThesesEnum import ThesesStatusEnum
-
 from pipeline import catalysts, evaluator, llm, news
 
 # Verdicts whose article never confirms anything don't need persisting as evidence

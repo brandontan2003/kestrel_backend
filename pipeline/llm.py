@@ -33,9 +33,9 @@ from pydantic import BaseModel, Field
 from app.core.logger import logger
 from pipeline.news import Article
 
-PASS1_MODEL = "gpt-5.4-mini"   # cheap relevance filter (~$0.75/$4.50 per MTok)
-PASS2_MODEL = "gpt-5.4"        # reasoning + quoting (~$2.50/$15 per MTok)
-PASS1_CHUNK = 25          # articles per Pass-1 call (batched to cut cost/latency)
+PASS1_MODEL = "gpt-5.4-mini"  # cheap relevance filter (~$0.75/$4.50 per MTok)
+PASS2_MODEL = "gpt-5.4"  # reasoning + quoting (~$2.50/$15 per MTok)
+PASS1_CHUNK = 25  # articles per Pass-1 call (batched to cut cost/latency)
 _PROMPT_DIR = Path(__file__).parent / "prompts"
 
 
@@ -45,7 +45,7 @@ _PROMPT_DIR = Path(__file__).parent / "prompts"
 # --------------------------------------------------------------------------- #
 class RelevanceItem(BaseModel):
     """Pass-1 judgment for one article in the batch."""
-    index: int                                   # position in the submitted batch
+    index: int  # position in the submitted batch
     relevant: bool
     catalyst_ids: list[str] = Field(default_factory=list)
 
@@ -59,9 +59,9 @@ class _Pass2Output(BaseModel):
     catalyst_id: str
     proposed_state: Literal["no_change", "rumored", "confirmed", "invalidated"]
     confidence: float = Field(ge=0.0, le=1.0)
-    supporting_quote: str | None                 # verbatim, or null for no_change
+    supporting_quote: str | None  # verbatim, or null for no_change
     source_kind: Literal["primary", "reporting", "speculation"]
-    reasoning: str                               # 1-2 sentences, shown in the UI
+    reasoning: str  # 1-2 sentences, shown in the UI
 
 
 class CatalystVerdict(_Pass2Output):
@@ -76,8 +76,8 @@ class CatalystVerdict(_Pass2Output):
     """
     article_id: str
     prompt_version: str
-    classified_at: str                           # ISO-8601 UTC, stamped at guard time
-    guard_note: str | None = None                # set when a guard rewrote the verdict
+    classified_at: str  # ISO-8601 UTC, stamped at guard time
+    guard_note: str | None = None  # set when a guard rewrote the verdict
 
 
 # --------------------------------------------------------------------------- #
@@ -136,7 +136,7 @@ def pass1_relevance(articles: list[Article], catalysts: list[dict]) -> list[tupl
             # must both fit, or the response truncates and articles silently drop
             # (a Pass-1 recall killer). Reasoning models bill only tokens used.
             max_tokens=8192,
-            effort="low",   # batched triage — keep reasoning minimal and cheap
+            effort="low",  # batched triage — keep reasoning minimal and cheap
         )
 
         for item in result.items:
@@ -144,7 +144,7 @@ def pass1_relevance(articles: list[Article], catalysts: list[dict]) -> list[tupl
                 continue
             article = chunk[item.index]
             for cid in item.catalyst_ids:
-                if cid in by_id:              # ignore hallucinated catalyst ids
+                if cid in by_id:  # ignore hallucinated catalyst ids
                     pairs.append((article, by_id[cid]))
     return pairs
 
@@ -172,8 +172,8 @@ def pass2_confirm(article: Article, catalyst: dict) -> CatalystVerdict:
         system=_prompt("pass2_confirmation"),
         user=user_msg,
         schema=_Pass2Output,
-        max_tokens=4096,       # room for reasoning tokens + the verdict
-        effort="low",          # classifier, not an essay — keep reasoning short
+        max_tokens=4096,  # room for reasoning tokens + the verdict
+        effort="low",  # classifier, not an essay — keep reasoning short
     )
     return _apply_guards(raw, article)
 

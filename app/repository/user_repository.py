@@ -38,7 +38,7 @@ class UserRepository:
         user.telegram_chat_id = request.chat_id
         user.telegram_link_token = request.token
         user.telegram_token_expires_at = request.expires_at
-        
+
         await self._db.flush()
         await self._db.refresh(user)
         return user
@@ -51,6 +51,7 @@ class UserRepository:
             )
         )
         return result.scalar_one_or_none()
+
 
 async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepository(db)

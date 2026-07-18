@@ -10,4 +10,3 @@ v1_router.include_router(proposal.router)
 v1_router.include_router(evaluation.router)
 v1_router.include_router(alert.router)
 v1_router.include_router(telegram.router)
-

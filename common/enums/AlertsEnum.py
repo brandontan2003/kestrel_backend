@@ -6,6 +6,7 @@ class AlertStatusEnum(str, enum.Enum):
     SENT = "SENT"
     IN_PROGRESS = "IN_PROGRESS"
 
+
 class AlertChannelsEnum(str, enum.Enum):
     TELEGRAM = "TELEGRAM"
     EMAIL = "EMAIL"

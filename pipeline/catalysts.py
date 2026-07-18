@@ -25,7 +25,6 @@ from typing import Protocol
 # module owns the transition *rules*, `common` owns the vocabularies.
 from common.enums.CatalystEnum import CatalystProposal, CatalystState
 
-
 # The proposal vocabulary Pass 2 emits (llm.py CatalystVerdict.proposed_state).
 # Derived from the enum so the two can never drift apart.
 PROPOSALS = frozenset(p.value for p in CatalystProposal)
@@ -42,8 +41,8 @@ class VerdictLike(Protocol):
     imports the OpenAI SDK). Anything with these two attributes works —
     the real CatalystVerdict, or a test stub.
     """
-    proposed_state: str   # a CatalystProposal value
-    source_kind: str      # "primary" | "reporting" | "speculation"
+    proposed_state: str  # a CatalystProposal value
+    source_kind: str  # "primary" | "reporting" | "speculation"
 
 
 @dataclass(frozen=True)

@@ -6,8 +6,8 @@ from sqlalchemy.orm import relationship
 from app.core.database.auditable import Auditable
 from app.core.database.history_decorator import register_history
 from app.enums.SqlalchemyEnum import LAZY_SELECTIN, RelationshipCascade, ModelName
-from common.enums.ThesesEnum import ThesesStatusEnum, QuantModeEnum, CatalystModeEnum
 from app.models.base import Base
+from common.enums.ThesesEnum import ThesesStatusEnum, QuantModeEnum, CatalystModeEnum
 
 
 class ThesesHistory(Base, Auditable):

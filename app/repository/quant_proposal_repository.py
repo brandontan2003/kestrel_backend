@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select, func
 
 from app.config import get_db
-from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.models import QuantProposal, Theses
+from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 
 
 class QuantProposalRepository:

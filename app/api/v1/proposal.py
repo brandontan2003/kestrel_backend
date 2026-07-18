@@ -9,9 +9,9 @@ from app.dto.proposal import (
     RetrieveCatalystProposalResponse,
 )
 from app.enums.ErrorEnum import ErrorEnum
-from common.enums.ProposalEnum import ProposalStatusEnum
 from app.models import User
 from app.service.proposal_service import get_proposal_service, ProposalService
+from common.enums.ProposalEnum import ProposalStatusEnum
 
 router = APIRouter(prefix="/proposals", tags=["proposals"])
 

@@ -5,7 +5,7 @@ from sqlalchemy import event
 
 def register_history(history_model):
     """
-    Automatically mirror inserts and status updates 
+    Automatically mirror inserts and status updates
     directly into a history model.
     """
 
