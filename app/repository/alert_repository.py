@@ -42,5 +42,6 @@ class AlertRepository:
         alert.alert_status = status
         await self._db.flush()
 
+
 async def get_alert_repository(db: AsyncSession = Depends(get_db)) -> AlertRepository:
     return AlertRepository(db)
