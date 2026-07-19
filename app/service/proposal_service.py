@@ -1,11 +1,9 @@
-from fastapi.params import Depends
+from fastapi import Depends
 
 from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesProposalResponse, \
     RetrieveAllQuantProposalResponse, RetrieveQuantProposalResponse, RetrieveAllCatalystProposalResponse, \
     RetrieveCatalystProposalResponse, RetrieveAllProposalsResponse
 from app.dto.theses import UpdateQuantConditionRequest, UpdateCatalystRequest
-from common.enums.CatalystEnum import CatalystState
-from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 from app.exception_handler import QuantProposalNotFoundException, InvalidProposalStatusException, \
     QuantConditionNotFoundException, InvalidProposalTypeException, ThesesProposalNotFoundException, \
     CatalystProposalNotFoundException, CatalystNotFoundException
@@ -15,6 +13,7 @@ from app.repository.quant_condition_repository import QuantConditionRepository, 
 from app.repository.quant_proposal_repository import QuantProposalRepository, get_quant_proposal_repository
 from app.repository.theses_proposal_repository import ThesesProposalRepository, get_theses_proposal_repository
 from app.repository.theses_repository import ThesesRepository, get_theses_repository
+from common.enums.CatalystEnum import CatalystState
 from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 
 

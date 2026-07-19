@@ -11,8 +11,8 @@ from app.dto.proposal import (
 from app.enums.ErrorEnum import ErrorEnum
 from app.models import User
 from app.service.proposal_service import get_proposal_service, ProposalService
-from common.enums.ProposalEnum import ProposalStatusEnum
 from app.service.scheduler_service import scheduler
+from common.enums.ProposalEnum import ProposalStatusEnum
 
 router = APIRouter(prefix="/proposals", tags=["proposals"])
 
@@ -41,6 +41,7 @@ async def retrieve_all_theses_proposal(
     theses_proposals = await service.get_all_theses_proposals(
         user_id=current_user.user_id, theses_proposal_status=status, page=page, page_size=page_size)
     return DataResponse(result=theses_proposals)
+
 
 @router.get("/quant", response_model=DataResponse[RetrieveAllQuantProposalResponse],
             responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},

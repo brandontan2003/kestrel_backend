@@ -28,3 +28,9 @@ class RetrieveAllAlertResponse(BaseDTO):
     page: int
     page_size: int
     total_pages: int
+
+
+class CreateAlertRequest(BaseDTO):
+    evaluation_id: str
+    user_id: str
+    channels_sent: AlertChannelsEnum

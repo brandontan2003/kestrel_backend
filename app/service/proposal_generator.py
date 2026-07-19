@@ -25,7 +25,6 @@ from app.repository.quant_proposal_repository import QuantProposalRepository
 from app.service import quant_service
 from common.enums.CatalystEnum import CatalystState
 from common.enums.ProposalEnum import ProposalTypeEnum
-
 from pipeline import proposals
 
 # The ML guards police `metric` against this — anything else is unfetchable, so
@@ -117,7 +116,7 @@ class ProposalGenerator:
 
         await self._quant_repo.create_quant_proposal(
             theses_id=theses_id,
-            quant_condition_id=s.target_id,          # NULL for an ADD
+            quant_condition_id=s.target_id,  # NULL for an ADD
             proposal_type=_ACTION_TO_TYPE[s.action],
             proposed_change=change,
             llm_rationale=s.rationale,
@@ -152,7 +151,7 @@ class ProposalGenerator:
 
         await self._catalyst_repo.create_catalyst_proposal(
             theses_id=theses_id,
-            catalyst_id=s.target_id,                 # NULL for an ADD
+            catalyst_id=s.target_id,  # NULL for an ADD
             proposal_type=_ACTION_TO_TYPE[s.action],
             proposed_change=change,
             llm_rationale=s.rationale,
