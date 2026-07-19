@@ -38,7 +38,9 @@ class QuantProposal(Base, Auditable):
     quant_proposal_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 
     theses_id = Column(String(36), ForeignKey("tbl_theses.theses_id"), nullable=False)
-    quant_condition_id = Column(String(36), nullable=False)
+    # NULL for an ADD proposal — there's no condition row to point at until it's
+    # approved. Matches V1.10's nullable column (and the history model above).
+    quant_condition_id = Column(String(36), ForeignKey("tbl_quant_conditions.quant_condition_id"))
     proposal_type = Column(String(36), default=ProposalTypeEnum.UPDATE, nullable=False)
 
     proposed_change = Column(JSON, nullable=False)

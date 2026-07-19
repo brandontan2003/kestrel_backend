@@ -38,6 +38,36 @@ class QuantProposalRepository:
         rows = await self._db.execute(base.offset(offset).limit(page_size))
         return list(rows.scalars().all()), total
 
+    async def create_quant_proposal(self, theses_id: str, quant_condition_id: str | None, proposal_type: str,
+                                    proposed_change: dict, llm_rationale: str | None,
+                                    llm_confidence: float | None, source_article_url: str | None,
+                                    source_evaluation_id: str) -> QuantProposal:
+        proposal = QuantProposal(
+            theses_id=theses_id,
+            quant_condition_id=quant_condition_id,
+            proposal_type=proposal_type,
+            proposed_change=proposed_change,
+            llm_rationale=llm_rationale,
+            llm_confidence=llm_confidence,
+            source_article_url=source_article_url,
+            source_evaluation_id=source_evaluation_id,
+        )
+        self._db.add(proposal)
+        await self._db.flush()
+        await self._db.refresh(proposal)
+        return proposal
+
+    async def get_pending_by_theses_id(self, theses_id: str) -> list[QuantProposal]:
+        """Every still-pending proposal on a thesis — the generator's dedup set,
+        so a repeat sweep doesn't queue the same suggestion twice."""
+        result = await self._db.execute(
+            select(QuantProposal).where(
+                QuantProposal.theses_id == theses_id,
+                QuantProposal.quant_proposal_status == ProposalStatusEnum.PENDING,
+            )
+        )
+        return list(result.scalars().all())
+
     async def get_pending_updates_for_condition(self, quant_condition_id: str,
                                                 exclude_proposal_id: str) -> list[QuantProposal]:
         """Return all other pending UPDATE proposals for the same quant condition."""
