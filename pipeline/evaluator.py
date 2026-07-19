@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from enums.ThesesEnum import QuantModeEnum, CatalystModeEnum
+from common.enums.ThesesEnum import QuantModeEnum, CatalystModeEnum
 from pipeline import catalysts
 from pipeline.catalysts import CatalystState
 

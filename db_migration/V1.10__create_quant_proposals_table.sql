@@ -45,6 +45,6 @@ CREATE TABLE IF NOT EXISTS tbl_quant_proposals_history (
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  CONSTRAINT quant_proposals_history_pkey PRIMARY KEY (quant_proposal_id),
+  CONSTRAINT quant_proposals_history_pkey PRIMARY KEY (quant_proposal_history_id),
   CONSTRAINT quant_proposals_fkey FOREIGN KEY (quant_proposal_id) REFERENCES tbl_quant_proposals(quant_proposal_id)
 );

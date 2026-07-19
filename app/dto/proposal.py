@@ -24,6 +24,7 @@ class RetrieveThesesProposalResponse(BaseDTO):
     theses_proposal_status: str
     rejection_reason: str | None
     resolved_at: datetime | None
+    created_at: datetime  # when the agent raised it — the proposal card's timestamp
 
 
 class RetrieveAllThesesProposalResponse(BaseDTO):
@@ -48,6 +49,7 @@ class RetrieveQuantProposalResponse(BaseDTO):
     quant_proposal_status: str
     rejection_reason: str | None
     resolved_at: datetime | None
+    created_at: datetime  # when the agent raised it — the proposal card's timestamp
 
 
 class RetrieveAllQuantProposalResponse(BaseDTO):
@@ -72,6 +74,7 @@ class RetrieveCatalystProposalResponse(BaseDTO):
     catalyst_proposal_status: str
     rejection_reason: str | None
     resolved_at: datetime | None
+    created_at: datetime  # when the agent raised it — the proposal card's timestamp
 
 
 class RetrieveAllCatalystProposalResponse(BaseDTO):
