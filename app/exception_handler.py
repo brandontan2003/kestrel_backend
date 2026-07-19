@@ -52,6 +52,11 @@ class ThesesNotFoundException(BaseAppException):
         super().__init__(404, err.THESES_NOT_FOUND.error_code, err.THESES_NOT_FOUND.error_message)
 
 
+class TelegramAlreadyLinkedException(BaseAppException):
+    def __init__(self):
+        super().__init__(409, err.TELEGRAM_ALREADY_LINKED.error_code, err.TELEGRAM_ALREADY_LINKED.error_message)
+
+
 class QuantConditionNotFoundException(BaseAppException):
     def __init__(self):
         super().__init__(404, err.QUANT_CONDITION_NOT_FOUND.error_code, err.QUANT_CONDITION_NOT_FOUND.error_message)

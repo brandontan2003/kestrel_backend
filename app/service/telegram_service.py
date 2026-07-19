@@ -8,6 +8,7 @@ from app.config import settings
 from app.core.logger import logger
 from app.dto.base import SuccessResponse
 from app.dto.telegram import GenerateTokenResponse, UpdateTelegramDetailRequest
+from app.exception_handler import TelegramAlreadyLinkedException
 from app.models import Alert
 from app.models.users import User
 from app.repository.alert_repository import AlertRepository, get_alert_repository
@@ -37,6 +38,9 @@ class TelegramService:
         self._alert_repo = alert_repo
 
     async def generate_token(self, user: User) -> GenerateTokenResponse:
+        if user.telegram_chat_id is not None:
+            raise TelegramAlreadyLinkedException()
+
         token = str(uuid.uuid4())
         token_ttl_seconds = settings.TOKEN_TTL_SECONDS
         telegram_token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=token_ttl_seconds)
