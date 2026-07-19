@@ -8,8 +8,11 @@ from app.config import settings
 from app.core.logger import logger
 from app.dto.base import SuccessResponse
 from app.dto.telegram import GenerateTokenResponse, UpdateTelegramDetailRequest
+from app.models import Alert
 from app.models.users import User
+from app.repository.alert_repository import AlertRepository, get_alert_repository
 from app.repository.user_repository import UserRepository, get_user_repository
+from enums.AlertsEnum import AlertStatusEnum
 
 _bot: Bot | None = None
 
@@ -29,8 +32,9 @@ def _get_bot() -> Bot | None:
 
 
 class TelegramService:
-    def __init__(self, user_repo: UserRepository):
+    def __init__(self, user_repo: UserRepository, alert_repo: AlertRepository):
         self._user_repo = user_repo
+        self._alert_repo = alert_repo
 
     async def generate_token(self, user: User) -> GenerateTokenResponse:
         token = str(uuid.uuid4())
@@ -78,16 +82,25 @@ class TelegramService:
         await self._safe_send(chat_id=chat_id, text="✅ Kestrel connected. You'll receive alerts here.")
         logger.info(f"Telegram linked for user {user.user_id}, chat_id={chat_id}")
 
-    async def _safe_send(self, chat_id: int, text: str) -> None:
+    @staticmethod
+    async def _safe_send(chat_id: int | str, text: str, parse_mode: str | None = None) -> None:
         bot = _get_bot()
         if bot is None:
             logger.warning("Telegram not configured (TELEGRAM_BOT_TOKEN unset); skipping message to %s", chat_id)
             return
         try:
-            await bot.send_message(chat_id=chat_id, text=text)
+            await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
         except Exception as e:
             logger.error(f"Telegram send failed to {chat_id}: {e}")
 
+    async def send_notification_on_telegram(self, alert: Alert, chat_id: str, text: str, user_id: str):
+        try:
+            await self._safe_send(chat_id, text, parse_mode="Markdown")
+            await self._alert_repo.update_alert_status(alert, AlertStatusEnum.SENT)
+        except Exception:
+            logger.warning("Scheduler: Telegram push failed for user %s", user_id)
 
-async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository)) -> TelegramService:
-    return TelegramService(user_repo)
+
+async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository),
+                               alert_repo: AlertRepository = Depends(get_alert_repository)) -> TelegramService:
+    return TelegramService(user_repo, alert_repo)

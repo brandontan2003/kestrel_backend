@@ -12,14 +12,14 @@ class EvaluationRepository:
         self._db = db
 
     async def create_evaluation(self, theses_id: str, evaluation_status: str, prompt_version: str,
-                                results: dict, signal: bool, reason: str | None) -> Evaluation:
+                                results: dict, signal: bool, reason: str | None = None) -> Evaluation:
         evaluation = Evaluation(
             theses_id=theses_id,
             evaluation_status=evaluation_status,
             prompt_version=prompt_version,
             results=results,
             signal=signal,
-            reason=reason,
+            reason=reason
         )
         self._db.add(evaluation)
         await self._db.flush()

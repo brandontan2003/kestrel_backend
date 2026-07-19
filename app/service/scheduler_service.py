@@ -17,16 +17,24 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.config import settings
 from app.core.logger import logger
 from app.database_registry import get_sessionmaker
-from app.models import Theses
+from app.dto.alert import CreateAlertRequest
+from app.enums.WebSocketEnum import WebSocketEventTypeEnum
+from app.models import Theses, Evaluation
+from app.repository.alert_repository import AlertRepository
 from app.repository.catalyst_repository import CatalystRepository
 from app.repository.evaluation_repository import EvaluationRepository
 from app.repository.theses_repository import ThesesRepository
 from app.service import ml_adapter, quant_service
+from app.service.telegram_service import TelegramService, get_telegram_service
 from app.websocket.connection_manager import manager
 from common.enums.ThesesEnum import ThesesStatusEnum
+from enums.AlertsEnum import AlertChannelsEnum
 from pipeline import catalysts, evaluator, llm, news
 
 # Verdicts whose article never confirms anything don't need persisting as evidence
@@ -35,9 +43,10 @@ _NO_PROMPT = "no_classification"
 
 
 class SchedulerService:
-    def __init__(self) -> None:
+    def __init__(self, telegram_service: TelegramService) -> None:
         self._task: asyncio.Task | None = None
         self._stopping = asyncio.Event()
+        self._telegram_service = telegram_service
 
     # ----- lifecycle -------------------------------------------------------- #
     def start(self) -> None:
@@ -150,35 +159,55 @@ class SchedulerService:
         if prompt_version == _NO_PROMPT and previous is not None:
             prompt_version = previous.prompt_version  # keep column meaningful across quiet cycles
 
-        await eval_repo.create_evaluation(
+        evaluation = await eval_repo.create_evaluation(
             theses_id=theses_id,
             evaluation_status=result["status"],
             prompt_version=prompt_version,
             results=result,
             signal=result["signal"],
-            reason=result["reason"],
+            reason=result["reason"]
         )
 
         if result["signal"] and not was_firing:
-            await self._on_signal_fired(thesis, result)
+            await self._on_signal_fired(thesis, evaluation, session)
 
-    async def _on_signal_fired(self, thesis: Theses, result: dict) -> None:
+    async def _on_signal_fired(self, thesis: Theses, evaluation: Evaluation, session: AsyncSession) -> None:
         """A thesis's signal just went true. Best-effort live push to the owner.
 
         Phase 2 proper still owns: persisting an Alert row + the frontend
         consuming this event. The outbound WS infra already exists, so we use it.
         """
-        logger.info("SIGNAL fired for thesis %s (%s): %s",
-                    thesis.theses_id, result.get("ticker"), result.get("reason"))
+        thesis_id = thesis.theses_id
+        ticker = thesis.stocks_mapping.ticker
+
+        evaluation_id = evaluation.evaluation_id
+        reason = evaluation.reason
+
+        logger.info("SIGNAL fired for thesis %s (%s): %s", thesis_id, ticker, reason)
+        alert_repo = AlertRepository(session)
+
+        chat_id = thesis.users_mapping.telegram_chat_id
+        user_id = thesis.user_id
+        if chat_id:
+            build_request = CreateAlertRequest(
+                evaluation_id=evaluation_id,
+                user_id=user_id,
+                channels_sent=AlertChannelsEnum.TELEGRAM
+            )
+            alert = await alert_repo.create_alert(build_request)
+
+            text = f"🟢 Signal firing: *{ticker}*\n{reason}"
+            await self._telegram_service.send_notification_on_telegram(alert, chat_id, text, user_id)
+
         try:
             await manager.push_to_user(
-                thesis.user_id,
-                "signal",
-                {"theses_id": thesis.theses_id, "ticker": result.get("ticker"),
-                 "reason": result.get("reason"), "evaluated_at": result.get("evaluated_at")},
+                user_id,
+                WebSocketEventTypeEnum.ALERT,
+                {"theses_id": thesis_id, "ticker": ticker, "reason": reason,
+                 "evaluated_at": evaluation.created_at},
             )
         except Exception:
-            logger.warning("scheduler: WS push failed for user %s", thesis.user_id)
+            logger.warning("scheduler: WS push failed for user %s", user_id)
 
 
-scheduler = SchedulerService()
+scheduler = SchedulerService(telegram_service=Depends(get_telegram_service))

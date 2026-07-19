@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from sqlalchemy import Column, String, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import relationship
@@ -19,7 +20,7 @@ class EvaluationHistory(Base, Auditable):
     prompt_version = Column(String, nullable=False)
     results = Column(JSON, nullable=False)
     signal = Column(Boolean, nullable=False)
-    reason = Column(String)
+    reason: Optional[str] = Column(String)
 
 
 @register_history(EvaluationHistory)
@@ -32,7 +33,7 @@ class Evaluation(Base, Auditable):
     prompt_version = Column(String, nullable=False)
     results = Column(JSON, nullable=False)
     signal = Column(Boolean, default=True, nullable=False)
-    reason = Column(String)
+    reason: Optional[str] = Column(String)
 
     theses_mapping = relationship(
         ModelName.THESES,
