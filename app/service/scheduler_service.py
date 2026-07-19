@@ -109,9 +109,9 @@ class SchedulerService:
         by_id = {c.catalyst_id: c for c in catalyst_rows}
 
         prompt_version = _NO_PROMPT
-        # Kept in scope for the proposal reviewer below. A quant-only thesis never
-        # fetches news, and the reviewer doesn't need any to judge a threshold —
-        # so it reviews on what this sweep already paid for, never its own fetch.
+        # Populated below for a catalyst thesis (classification). A quant-only
+        # thesis fetches none here; the reviewer fetches its own in
+        # _generate_proposals so it can still DISCOVER a new catalyst from the news.
         articles: list = []
 
         # 1–3. News → classify → apply state machine (only if there are catalysts to judge)
@@ -180,6 +180,22 @@ class SchedulerService:
         is logged and dropped rather than allowed to roll back the evaluation."""
         if not settings.PROPOSALS_ENABLED:
             return
+
+        # Discovery needs news. A catalyst thesis already fetched it above; a
+        # quant-only thesis did not — so fetch it here whenever we don't already
+        # have articles, including when the signal is firing. A firing thesis can
+        # still surface fresh events worth proposing on, so we spend the call.
+        # Without this, a quant-only thesis — the common case — could never be
+        # told about a material event worth adding a catalyst for.
+        if not articles:
+            try:
+                since = datetime.now(timezone.utc) - timedelta(hours=settings.SCHEDULER_LOOKBACK_HOURS)
+                articles = news.fetch(thesis_dict["ticker"], since=since)
+                logger.info("thesis %s (%s): reviewer fetched %d articles for discovery",
+                            theses_id, thesis_dict.get("ticker"), len(articles))
+            except Exception:
+                logger.warning("scheduler: reviewer news fetch failed for %s", thesis_dict.get("ticker"))
+
         try:
             generator = ProposalGenerator(QuantProposalRepository(session), CatalystProposalRepository(session))
             await generator.generate(
