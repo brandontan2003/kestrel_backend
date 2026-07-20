@@ -36,6 +36,12 @@ class StockRepository:
         await self._db.refresh(stock)
         return stock
 
+    async def get_all_stocks_with_listed_status(self) -> list[Stock]:
+        result = await self._db.execute(
+            select(Stock).where(Stock.stock_status == StockStatusEnum.LISTED)
+        )
+        return list(result.scalars().all())
+
 
 async def get_stock_repository(db: AsyncSession = Depends(get_db)) -> StockRepository:
     return StockRepository(db)

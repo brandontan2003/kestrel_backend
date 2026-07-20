@@ -1,4 +1,4 @@
-name: code_exp26_backend
+name: kestrel_backend
 
 on:
   push:
