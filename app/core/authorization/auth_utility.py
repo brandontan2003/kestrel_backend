@@ -23,12 +23,14 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
     - Scoped to /api/v1/auth only — browser will NOT send it to /api/v1/theses etc.
       Minimises the window in which the refresh token is transmitted.
     """
+    is_prod = settings.ENV != "dev"
+
     response.set_cookie(
         key=ACCESS_COOKIE_KEY,
         value=access_token,
         httponly=True,
-        secure=settings.ENV != "dev",
-        samesite="strict",
+        secure=is_prod,
+        samesite="none" if is_prod else "strict",
         max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path=_COOKIE_PATH,
     )
@@ -36,8 +38,8 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         key=REFRESH_COOKIE_KEY,
         value=refresh_token,
         httponly=True,
-        secure=settings.ENV != "dev",
-        samesite="strict",
+        secure=is_prod,
+        samesite="none" if is_prod else "strict",
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
         path=f"{_COOKIE_PATH}/auth",  # /api/v1/auth only
     )
