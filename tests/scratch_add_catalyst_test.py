@@ -39,7 +39,8 @@ def art(headline, body, url):
 
 strong = [
     art("US moves to ban Nvidia's most advanced AI chips from export to China",
-        "The administration issued rules barring export of Nvidia's top data-center accelerators to China without a license.", "u1"),
+        "The administration issued rules barring export of Nvidia's top data-center accelerators to China without a license.",
+        "u1"),
     art("Nvidia warns China export ban could cut billions from quarterly revenue",
         "In a filing, Nvidia said the restrictions could reduce quarterly revenue by several billion dollars.", "u2"),
     art("Analysts say fresh export curbs reshape Nvidia's China business",
@@ -79,7 +80,7 @@ def show(label, articles):
     print(f"  -> {len(adds)} catalyst ADD proposal(s)\n")
 
 
-def main():
+def test_main():
     print(f"proposal model: {proposals.PROPOSE_MODEL}\n")
     try:
         show("A: strong, event across headlines+bodies (expect ADD)", strong)
@@ -87,7 +88,3 @@ def main():
         show("C: benign market chatter (expect NOTHING)", control)
     except Exception as exc:
         print(f"!! call failed: {type(exc).__name__}: {exc}")
-
-
-if __name__ == "__main__":
-    main()

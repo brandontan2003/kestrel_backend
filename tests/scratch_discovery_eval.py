@@ -105,13 +105,17 @@ def run():
         did_add = bool(adds)
         want_add = sc["expect"] == "add"
         ok = did_add == want_add
-        if want_add and did_add: tp += 1
-        elif want_add and not did_add: fn += 1; misses.append(("MISS (no add)", sc["name"]))
-        elif not want_add and did_add: fp += 1; misses.append(("FALSE ADD", sc["name"], adds[0].rationale))
-        else: tn += 1
+        if want_add and did_add:
+            tp += 1
+        elif want_add and not did_add:
+            fn += 1; misses.append(("MISS (no add)", sc["name"]))
+        elif not want_add and did_add:
+            fp += 1; misses.append(("FALSE ADD", sc["name"], adds[0].rationale))
+        else:
+            tn += 1
         mark = "✓" if ok else "✗"
         conf = f" @{adds[0].confidence:.2f}" if adds else ""
-        print(f"  {mark} [{sc['expect']:5}] {sc['name']:42} -> {'ADD'+conf if did_add else 'quiet'}")
+        print(f"  {mark} [{sc['expect']:5}] {sc['name']:42} -> {'ADD' + conf if did_add else 'quiet'}")
 
     pos, neg = tp + fn, tn + fp
     print(f"\n  recall (material events caught):      {tp}/{pos}")
@@ -124,12 +128,8 @@ def run():
         print("\n  no misclassifications.")
 
 
-def main():
+def test_main():
     try:
         run()
     except Exception as exc:
         print(f"!! failed: {type(exc).__name__}: {exc}")
-
-
-if __name__ == "__main__":
-    main()
