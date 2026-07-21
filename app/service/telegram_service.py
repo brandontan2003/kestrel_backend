@@ -13,7 +13,7 @@ from app.models import Alert
 from app.models.users import User
 from app.repository.alert_repository import AlertRepository, get_alert_repository
 from app.repository.user_repository import UserRepository, get_user_repository
-from enums.AlertsEnum import AlertStatusEnum
+from common.enums.AlertsEnum import AlertStatusEnum
 
 _bot: Bot | None = None
 

@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import select, func
 from app.config import get_db
 from app.dto.alert import CreateAlertRequest
 from app.models import Alert
-from enums.AlertsEnum import AlertStatusEnum
+from common.enums.AlertsEnum import AlertStatusEnum
 
 
 class AlertRepository:
