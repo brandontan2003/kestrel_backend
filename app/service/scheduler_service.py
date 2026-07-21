@@ -37,7 +37,7 @@ from app.service.proposal_generator import ProposalGenerator
 from app.service.telegram_service import TelegramService, get_telegram_service
 from app.websocket.connection_manager import manager
 from common.enums.ThesesEnum import ThesesStatusEnum
-from enums.AlertsEnum import AlertChannelsEnum
+from common.enums.AlertsEnum import AlertChannelsEnum
 from pipeline import catalysts, evaluator, llm, news
 
 # Verdicts whose article never confirms anything don't need persisting as evidence

@@ -65,7 +65,7 @@ articles_b = [make_article(
     published_at=datetime.now(timezone.utc), source="finnhub")]
 
 
-def main():
+def test_main():
     print(f"proposal model in use: {proposals.PROPOSE_MODEL}\n")
     try:
         show("A: catalyst overtaken (expect a proposal)",
@@ -77,7 +77,3 @@ def main():
     except Exception as exc:
         print(f"!! call failed: {type(exc).__name__}: {exc}")
         print("   (if it's an auth/model error, that itself is useful signal)")
-
-
-if __name__ == "__main__":
-    main()
