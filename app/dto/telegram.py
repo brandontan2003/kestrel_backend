@@ -5,6 +5,7 @@ from app.dto.base import BaseDTO
 
 class UpdateTelegramDetailRequest(BaseDTO):
     chat_id: str | None = None
+    handle: str | None = None
     token: str | None = None
     expires_at: datetime | None = None
 
@@ -14,3 +15,7 @@ class GenerateTokenResponse(BaseDTO):
     expires_in_seconds: int
     instruction: str
     unique_link: str
+
+class RetrieveTelegramStatusResponse(BaseDTO):
+    linked: bool
+    handle: str | None = None

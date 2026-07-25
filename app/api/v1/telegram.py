@@ -4,10 +4,10 @@ from app.core.authorization.auth_dependency import get_current_user
 from app.core.logger import logger
 from app.dto.base import DataResponse, SuccessResponse
 from app.dto.error import ErrorResponse
-from app.dto.telegram import GenerateTokenResponse
+from app.dto.telegram import GenerateTokenResponse, RetrieveTelegramStatusResponse
 from app.enums.ErrorEnum import ErrorEnum
 from app.models.users import User
-from app.service.telegram_service import TelegramService, get_telegram_service
+from app.service.telegram_service import TelegramService, get_telegram_service, retrieve_telegram_status
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
 
@@ -40,3 +40,11 @@ async def webhook(payload: dict, service: TelegramService = Depends(get_telegram
     except Exception as e:
         logger.error(f"Webhook handler error: {e}")
     return SuccessResponse()
+
+
+@router.get("/status", response_model=DataResponse[RetrieveTelegramStatusResponse],
+            responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
+                       422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}
+                       })
+async def retrieve_user_telegram_status(current_user: User = Depends(get_current_user)):
+    return DataResponse(result=retrieve_telegram_status(current_user))

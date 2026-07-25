@@ -7,12 +7,14 @@ from telegram import Bot
 from app.config import settings
 from app.core.logger import logger
 from app.dto.base import SuccessResponse
-from app.dto.telegram import GenerateTokenResponse, UpdateTelegramDetailRequest
+from app.dto.telegram import GenerateTokenResponse, UpdateTelegramDetailRequest, RetrieveTelegramStatusResponse
+from app.enums.WebSocketEnum import WebSocketEventTypeEnum
 from app.exception_handler import TelegramAlreadyLinkedException
 from app.models import Alert
 from app.models.users import User
 from app.repository.alert_repository import AlertRepository, get_alert_repository
 from app.repository.user_repository import UserRepository, get_user_repository
+from app.websocket.connection_manager import ConnectionManager
 from common.enums.AlertsEnum import AlertStatusEnum
 
 _bot: Bot | None = None
@@ -30,6 +32,13 @@ def _get_bot() -> Bot | None:
     if _bot is None and settings.TELEGRAM_BOT_TOKEN:
         _bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
     return _bot
+
+
+def retrieve_telegram_status(user: User) -> RetrieveTelegramStatusResponse:
+    return RetrieveTelegramStatusResponse(
+        linked=True if user.telegram_chat_id is not None else False,
+        handle=user.telegram_handle
+    )
 
 
 class TelegramService:
@@ -63,6 +72,7 @@ class TelegramService:
         message = payload.get("message", {})
         text = message.get("text", "").strip()
         chat_id = message.get("chat", {}).get("id")
+        chat_username = message.get("chat", {}).get("username")
 
         if not text.startswith("/authorize") or not chat_id:
             return  # ignore anything that isn't a /authorize command or doesn't have a chat_id
@@ -80,10 +90,12 @@ class TelegramService:
                                   text="This link has expired or is invalid. Generate a new one from Kestrel.")
             return
 
-        request = UpdateTelegramDetailRequest(chat_id=str(chat_id))
+        request = UpdateTelegramDetailRequest(chat_id=str(chat_id), handle=chat_username)
         await self._user_repo.update_user_telegram_details(user, request)
 
         await self._safe_send(chat_id=chat_id, text="✅ Kestrel connected. You'll receive alerts here.")
+        await manager.push_to_user(user_id=user.user_id, event_type=WebSocketEventTypeEnum.TELEGRAM_LINKED,
+                                   payload=retrieve_telegram_status(user).model_dump())
         logger.info(f"Telegram linked for user {user.user_id}, chat_id={chat_id}")
 
     @staticmethod
@@ -108,3 +120,6 @@ class TelegramService:
 async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository),
                                alert_repo: AlertRepository = Depends(get_alert_repository)) -> TelegramService:
     return TelegramService(user_repo, alert_repo)
+
+
+manager = ConnectionManager()
