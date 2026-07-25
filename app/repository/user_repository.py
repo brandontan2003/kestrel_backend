@@ -36,6 +36,7 @@ class UserRepository:
 
     async def update_user_telegram_details(self, user: User, request: UpdateTelegramDetailRequest) -> User:
         user.telegram_chat_id = request.chat_id
+        user.telegram_handle = request.handle
         user.telegram_link_token = request.token
         user.telegram_token_expires_at = request.expires_at
 

@@ -19,7 +19,10 @@ class UserHistory(Base, Auditable):
     username = Column(String, nullable=False)
     user_status = Column(String(10), nullable=False)
     password_hash = Column(String, nullable=False)
-
+    telegram_chat_id = Column(String, nullable=True)
+    telegram_handle = Column(String, nullable=True)
+    telegram_link_token = Column(String(36), nullable=True)
+    telegram_token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
 @register_history(UserHistory)
 class User(Base, Auditable):
@@ -31,6 +34,7 @@ class User(Base, Auditable):
     user_status = Column(String(10), default=UserStatusEnum.ACTIVE, nullable=False)
     password_hash = Column(String, nullable=False)
     telegram_chat_id = Column(String, nullable=True)
+    telegram_handle = Column(String, nullable=True)
     telegram_link_token = Column(String(36), nullable=True)
     telegram_token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
