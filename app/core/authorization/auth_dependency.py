@@ -45,16 +45,19 @@ async def get_current_user_ws(websocket: WebSocket, repo: UserRepository = Depen
     # Try cookie first, fall back to query param
     token = websocket.cookies.get(ACCESS_COOKIE_KEY) or websocket.query_params.get("token")
     if not token:
+        await websocket.accept()
         await websocket.close(code=1008)  # Policy violation
         raise InvalidAuthTokenException()
 
     payload = decode_token(token)
     if payload is None:
+        await websocket.accept()
         await websocket.close(code=1008)
         raise InvalidAuthTokenException()
 
     user = await repo.get_by_user_id(payload["sub"])
     if user is None:
+        await websocket.accept()
         await websocket.close(code=1008)
         raise InvalidAuthTokenException()
     return user
