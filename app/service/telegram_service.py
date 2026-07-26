@@ -65,7 +65,10 @@ class TelegramService:
         )
 
     async def disconnect(self, user: User) -> SuccessResponse:
-        await self._user_repo.update_user_telegram_details(user, UpdateTelegramDetailRequest())
+        updated_user = await self._user_repo.update_user_telegram_details(user, UpdateTelegramDetailRequest())
+
+        await manager.push_to_user(user_id=updated_user.user_id, event_type=WebSocketEventTypeEnum.TELEGRAM_UNLINKED,
+                                   payload=retrieve_telegram_status(updated_user).model_dump())
         return SuccessResponse()
 
     async def handle_webhook(self, payload: dict) -> None:
