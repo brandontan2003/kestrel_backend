@@ -14,7 +14,7 @@ from app.models import Alert
 from app.models.users import User
 from app.repository.alert_repository import AlertRepository, get_alert_repository
 from app.repository.user_repository import UserRepository, get_user_repository
-from app.websocket.connection_manager import ConnectionManager
+from app.websocket.connection_manager import manager
 from common.enums.AlertsEnum import AlertStatusEnum
 
 _bot: Bot | None = None
@@ -120,6 +120,3 @@ class TelegramService:
 async def get_telegram_service(user_repo: UserRepository = Depends(get_user_repository),
                                alert_repo: AlertRepository = Depends(get_alert_repository)) -> TelegramService:
     return TelegramService(user_repo, alert_repo)
-
-
-manager = ConnectionManager()
