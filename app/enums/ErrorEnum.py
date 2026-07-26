@@ -47,6 +47,10 @@ class ErrorEnum(enum.Enum):
     # Alert
     ALERT_NOT_FOUND = ("ALERT_NOT_FOUND", "Alert not found")
 
+    # TELEGRAM_ALREADY_LINKED
+    TELEGRAM_ALREADY_LINKED = ("TELEGRAM_ALREADY_LINKED",
+                               "The account already had telegram linked, please unlink to link a new account.")
+
     @property
     def error_code(self) -> str:
         return self.value[0]
