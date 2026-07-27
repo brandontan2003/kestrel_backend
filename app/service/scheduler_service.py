@@ -17,7 +17,6 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -32,12 +31,13 @@ from app.repository.catalyst_repository import CatalystRepository
 from app.repository.evaluation_repository import EvaluationRepository
 from app.repository.quant_proposal_repository import QuantProposalRepository
 from app.repository.theses_repository import ThesesRepository
+from app.repository.user_repository import UserRepository
 from app.service import ml_adapter, quant_service
 from app.service.proposal_generator import ProposalGenerator
-from app.service.telegram_service import TelegramService, get_telegram_service
+from app.service.telegram_service import TelegramService
 from app.websocket.connection_manager import manager
-from common.enums.ThesesEnum import ThesesStatusEnum
 from common.enums.AlertsEnum import AlertChannelsEnum
+from common.enums.ThesesEnum import ThesesStatusEnum
 from pipeline import catalysts, evaluator, llm, news
 
 # Verdicts whose article never confirms anything don't need persisting as evidence
@@ -46,10 +46,9 @@ _NO_PROMPT = "no_classification"
 
 
 class SchedulerService:
-    def __init__(self, telegram_service: TelegramService) -> None:
+    def __init__(self) -> None:
         self._task: asyncio.Task | None = None
         self._stopping = asyncio.Event()
-        self._telegram_service = telegram_service
 
     # ----- lifecycle -------------------------------------------------------- #
     def start(self) -> None:
@@ -244,6 +243,8 @@ class SchedulerService:
 
         logger.info("SIGNAL fired for thesis %s (%s): %s", thesis_id, ticker, reason)
         alert_repo = AlertRepository(session)
+        user_repo = UserRepository(session)
+        telegram_service = TelegramService(user_repo=user_repo, alert_repo=alert_repo)
 
         chat_id = thesis.users_mapping.telegram_chat_id
         user_id = thesis.user_id
@@ -256,7 +257,7 @@ class SchedulerService:
             alert = await alert_repo.create_alert(build_request)
 
             text = f"🟢 Signal firing: *{ticker}*\n{reason}"
-            await self._telegram_service.send_notification_on_telegram(alert, chat_id, text, user_id)
+            await telegram_service.send_notification_on_telegram(alert, chat_id, text, user_id)
 
         try:
             await manager.push_to_user(
@@ -269,4 +270,4 @@ class SchedulerService:
             logger.warning("scheduler: WS push failed for user %s", user_id)
 
 
-scheduler = SchedulerService(telegram_service=Depends(get_telegram_service))
+scheduler = SchedulerService()
