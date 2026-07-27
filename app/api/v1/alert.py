@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.core.authorization.auth_dependency import get_current_user
-from app.dto.alert import RetrieveAllAlertResponse
+from app.dto.alert import RetrieveAllAlertResponse, RetrieveAlertResponse
 from app.dto.base import DataResponse
 from app.dto.error import ErrorResponse
 from app.enums.ErrorEnum import ErrorEnum
@@ -22,7 +22,7 @@ async def retrieve_all_alerts(
         result=await service.retrieve_all_alerts(user_id=current_user.user_id, page=page, page_size=page_size))
 
 
-@router.get("/{alert_id}", response_model=DataResponse[RetrieveAllAlertResponse],
+@router.get("/{alert_id}", response_model=DataResponse[RetrieveAlertResponse],
             responses={401: {"model": ErrorResponse, "description": ErrorEnum.INVALID_TOKEN_ERROR.error_code},
                        404: {"model": ErrorResponse, "description": ErrorEnum.ALERT_NOT_FOUND.error_code},
                        422: {"model": ErrorResponse, "description": ErrorEnum.VALIDATION_ERROR.error_code}

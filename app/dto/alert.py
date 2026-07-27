@@ -17,6 +17,9 @@ class EvaluationResponse(BaseDTO):
 class RetrieveAlertResponse(BaseDTO):
     alert_id: str
     evaluation_id: str
+    theses_id: str
+    theses_notes: str | None = None
+    ticker: str
     channels_sent: AlertChannelsEnum
     alert_status: AlertStatusEnum
     evaluation: EvaluationResponse

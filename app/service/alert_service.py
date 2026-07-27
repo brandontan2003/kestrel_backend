@@ -12,7 +12,10 @@ class AlertService:
     async def retrieve_all_alerts(self, user_id: str, page: int, page_size: int) -> RetrieveAllAlertResponse:
         alerts, total = await self._alert_repo.get_all_alerts_by_user_id(user_id=user_id, page=page,
                                                                          page_size=page_size)
-        result = [RetrieveAlertResponse(**alert.__dict__, evaluation=alert.evaluations_mapping) for alert in alerts]
+        result = [RetrieveAlertResponse(**alert.__dict__, theses_id=alert.evaluations_mapping.theses_mapping.theses_id,
+                                        theses_notes=alert.evaluations_mapping.theses_mapping.notes,
+                                        ticker=alert.evaluations_mapping.theses_mapping.stocks_mapping.ticker,
+                                        evaluation=alert.evaluations_mapping) for alert in alerts]
         return RetrieveAllAlertResponse(alerts=result, total=total, page=page, page_size=page_size,
                                         total_pages=-(-total // page_size))
 
@@ -20,7 +23,11 @@ class AlertService:
         alert = await self._alert_repo.get_alert_by_alert_id_and_user_id(alert_id, user_id)
         if alert is None:
             raise AlertNotFoundException()
-        return RetrieveAlertResponse(**alert.__dict__, evaluation=alert.evaluations_mapping)
+        return RetrieveAlertResponse(**alert.__dict__,
+                                     theses_id=alert.evaluations_mapping.theses_mapping.theses_id,
+                                     theses_notes=alert.evaluations_mapping.theses_mapping.notes,
+                                     ticker=alert.evaluations_mapping.theses_mapping.stocks_mapping.ticker,
+                                     evaluation=alert.evaluations_mapping)
 
 
 async def get_alert_service(alert_repo: AlertRepository = Depends(get_alert_repository)) -> AlertService:
