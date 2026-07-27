@@ -9,7 +9,7 @@ class EvaluationResponse(BaseDTO):
     evaluation_status: str
     prompt_version: str
     results: dict[str, Any]
-    signal: str
+    signal: bool
     reason: str | None = None
     created_at: datetime
 
