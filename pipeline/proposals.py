@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 import math
 from datetime import datetime, timezone
-from typing import Iterable, Literal
+from typing import Iterable, Literal, Any
 
 from pydantic import BaseModel, Field
 
@@ -45,7 +45,7 @@ from pipeline.news import Article
 
 log = logging.getLogger(__name__)
 
-PROPOSE_MODEL = "gpt-5.4"     # judgment about the user's own thesis — worth the reasoning model
+PROPOSE_MODEL = "gpt-5.4"  # judgment about the user's own thesis — worth the reasoning model
 PROMPT_NAME = "propose_changes"
 
 # Operators the evaluator can compare (mirrors the host's condition vocabulary).
@@ -69,13 +69,13 @@ class _Proposal(BaseModel):
     """One suggested edit, as the model emits it."""
     target: Literal["quant", "catalyst"]
     action: Literal["add", "update", "remove"]
-    target_id: str | None            # the row being changed; null for `add`
-    metric: str | None               # quant add/update
-    operator: str | None             # quant add/update
-    value: float | None              # quant add/update
-    description: str | None          # catalyst add/update
+    target_id: str | None  # the row being changed; null for `add`
+    metric: str | None  # quant add/update
+    operator: str | None  # quant add/update
+    value: float | None  # quant add/update
+    description: str | None  # catalyst add/update
     source_article_index: int | None  # index into the articles we supplied
-    rationale: str                   # 1-2 sentences, shown on the proposal card
+    rationale: str  # 1-2 sentences, shown on the proposal card
     confidence: float = Field(ge=0.0, le=1.0)
 
 
@@ -90,8 +90,8 @@ class Suggestion(_Proposal):
     """
     source_article_url: str | None = None
     prompt_version: str
-    proposed_at: str                 # ISO-8601 UTC, stamped at guard time
-    guard_note: str | None = None    # set when a guard rewrote the proposal
+    proposed_at: str  # ISO-8601 UTC, stamped at guard time
+    guard_note: str | None = None  # set when a guard rewrote the proposal
 
 
 # --------------------------------------------------------------------------- #
@@ -154,8 +154,8 @@ def _review(thesis: dict, evaluation: dict, catalyst_states: dict[str, str],
         system=_prompt(PROMPT_NAME),
         user=_build_user_message(thesis, evaluation, catalyst_states, articles, metrics),
         schema=_ProposeOutput,
-        max_tokens=4096,   # room for reasoning tokens + a handful of proposals
-        effort="low",      # a focused review, not an essay
+        max_tokens=4096,  # room for reasoning tokens + a handful of proposals
+        effort="low",  # a focused review, not an essay
     )
 
 
@@ -184,20 +184,20 @@ def _build_user_message(thesis: dict, evaluation: dict, catalyst_states: dict[st
     metric_names = ", ".join(sorted(metrics)) or "(unrestricted)"
 
     return (
-        f"TICKER: {thesis.get('ticker', '?')}\n"
-        f"QUANT MODE: {thesis.get('quant_mode', 'all')} "
-        f"(how the quant conditions combine)\n"
-        f"CATALYST MODE: {thesis.get('catalyst_mode', 'all')} "
-        f"(how the catalysts combine)\n\n"
-        f"QUANT CONDITIONS:\n" + "\n".join(quant_lines) + "\n\n"
-        f"CATALYSTS:\n" + "\n".join(catalyst_lines) + "\n\n"
-        f"LATEST SWEEP:\n"
-        f"- status: {evaluation.get('status', '?')}\n"
-        f"- reason: {evaluation.get('reason', '')}\n"
-        f"- why it isn't firing:\n" + "\n".join(blocked_lines) + "\n\n"
-        f"FETCHABLE METRICS: {metric_names}\n\n"
-        f"RECENT NEWS (headline + body — read the body, that's where materiality is):\n"
-        + "\n".join(article_lines)
+        f"""
+    TICKER: {thesis.get('ticker', '?')}\n
+    QUANT MODE: {thesis.get('quant_mode', 'all')}
+    (how the quant conditions combine)\n
+    QUANT CONDITIONS:\n {'\n'.join(quant_lines)} \n\n
+    CATALYSTS:\n {'\n'.join(catalyst_lines)} \n\n
+    LATEST SWEEP:\n
+    - status: {evaluation.get('status', '?')}\n
+    - reason: {evaluation.get('reason', '')}\n
+    - why it isn't firing:\n {'\n'.join(blocked_lines)} \n\n
+    FETCHABLE METRICS: {metric_names}\n\n
+    RECENT NEWS (headline + body — read the body, that's where materiality is):\n
+    {'\n'.join(article_lines)}
+    """
     )
 
 
@@ -276,21 +276,13 @@ def _reject_reason(p: _Proposal, conditions: dict, catalysts: dict,
         return None  # nothing else to validate — the id is the whole payload
 
     if p.target == "quant":
-        # Guard 2: an unfetchable metric or uncomparable operator never resolves.
-        if not p.metric:
-            return "quant proposal without a metric"
-        if metric_names and p.metric not in metric_names:
-            return f"unfetchable metric {p.metric!r}"
-        if p.operator not in OPERATORS:
-            return f"unsupported operator {p.operator!r}"
-        if p.value is None or not math.isfinite(p.value):
-            return f"non-numeric threshold {p.value!r}"
-        # Guard 3: an update that changes nothing wastes a review.
-        if p.action == "update" and _is_noop(p, conditions[p.target_id]):
-            return "update is identical to the current condition"
-        return None
+        return check_quant_proposal(conditions, metric_names, p)
 
     # target == "catalyst"
+    return check_catalyst_proposal(catalysts, existing_descriptions, p)
+
+
+def check_catalyst_proposal(catalysts: dict, existing_descriptions: set[str], p: _Proposal) -> Any:
     if not (p.description or "").strip():
         return "catalyst proposal without a description"
     if p.action == "update" and _norm(p.description) == _norm(catalysts[p.target_id].get("description") or ""):
@@ -298,6 +290,22 @@ def _reject_reason(p: _Proposal, conditions: dict, catalysts: dict,
     # Guard 4: don't propose a catalyst the thesis already watches.
     if p.action == "add" and _norm(p.description) in existing_descriptions:
         return "add duplicates an existing catalyst"
+    return None
+
+
+def check_quant_proposal(conditions: dict, metric_names: frozenset[str], p: _Proposal) -> Any:
+    # Guard 2: an unfetchable metric or uncomparable operator never resolves.
+    if not p.metric:
+        return "quant proposal without a metric"
+    if metric_names and p.metric not in metric_names:
+        return f"unfetchable metric {p.metric!r}"
+    if p.operator not in OPERATORS:
+        return f"unsupported operator {p.operator!r}"
+    if p.value is None or not math.isfinite(p.value):
+        return f"non-numeric threshold {p.value!r}"
+    # Guard 3: an update that changes nothing wastes a review.
+    if p.action == "update" and _is_noop(p, conditions[p.target_id]):
+        return "update is identical to the current condition"
     return None
 
 
