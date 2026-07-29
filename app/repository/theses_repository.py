@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import func, select
 
-from app.config import get_db
+from app.database_dependency import get_db
 from app.dto.theses import UpdateThesesRequest
 from app.models import Theses
 from common.enums.ThesesEnum import ThesesStatusEnum

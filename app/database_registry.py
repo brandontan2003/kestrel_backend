@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
+from app.config import settings
+
 _engine = None
 _sessionmaker = None
 
@@ -13,6 +15,10 @@ def init_database_engine(database_url: str):
 
     _engine = create_async_engine(
         database_url,
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_timeout=settings.DB_POOL_TIMEOUT,
+        pool_pre_ping=True,
         connect_args={
             "statement_cache_size": 0,
             "server_settings": {

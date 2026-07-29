@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select, func
 
-from app.config import get_db
+from app.database_dependency import get_db
 from app.models import QuantProposal, Theses
 from common.enums.ProposalEnum import ProposalStatusEnum, ProposalTypeEnum
 

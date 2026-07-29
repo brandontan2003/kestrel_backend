@@ -4,8 +4,6 @@ from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.database_registry import get_sessionmaker
-
 # picks ENV from system environment, defaults to "dev"
 env = os.getenv("ENV", "dev")
 
@@ -14,6 +12,10 @@ class Settings(BaseSettings):
     ENV: str = "dev"
 
     DATABASE_URL: str = ""
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 40
+    DB_POOL_TIMEOUT: int = 30
+
     FRONTEND_URL: str = ""
 
     # Create a property to use in your code
@@ -55,16 +57,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-
-async def get_db():
-    session_maker = get_sessionmaker()
-    async with session_maker() as session:
-        try:
-            yield session
-            # clean exit → commit
-            await session.commit()
-        except Exception:
-            # any error → rollback
-            await session.rollback()
-            raise
