@@ -16,6 +16,7 @@ class GenerateTokenResponse(BaseDTO):
     instruction: str
     unique_link: str
 
+
 class RetrieveTelegramStatusResponse(BaseDTO):
     linked: bool
     handle: str | None = None

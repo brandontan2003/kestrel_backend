@@ -40,15 +40,18 @@ SCENARIOS = [
     dict(name="export ban (regulatory)", ticker="NVDA",
          catalysts=["NVIDIA announces a new data-center GPU"], expect="add",
          articles=[art("US moves to ban Nvidia's advanced AI chips from export to China",
-                       "New rules bar Nvidia's top accelerators from China without a license; Nvidia said it could cut billions from quarterly revenue.")] + NOISE),
+                       "New rules bar Nvidia's top accelerators from China without a license; Nvidia said it "
+                       "could cut billions from quarterly revenue.")] + NOISE),
     dict(name="bland headline / material body", ticker="NVDA",
          catalysts=["NVIDIA announces a new data-center GPU"], expect="add",
          articles=[art("Nvidia provides a business update",
-                       "Nvidia disclosed US regulators revoked its license to sell H20 chips in China, a market worth several billion dollars annually, effective immediately.")] + NOISE),
+                       "Nvidia disclosed US regulators revoked its license to sell H20 chips in China, a market "
+                       "worth several billion dollars annually, effective immediately.")] + NOISE),
     dict(name="FDA clinical hold (single article)", ticker="PFE",
          catalysts=["Pfizer reports Q3 results that beat consensus"], expect="add",
          articles=[art("Pfizer provides pipeline update",
-                       "The FDA placed a clinical hold on Pfizer's lead oncology trial after a safety signal, halting enrollment; analysts called it a setback.")]),
+                       "The FDA placed a clinical hold on Pfizer's lead oncology trial after a safety signal, "
+                       "halting enrollment; analysts called it a setback.")]),
     dict(name="FAA grounding (safety/regulatory)", ticker="BA",
          catalysts=["Boeing wins a large new aircraft order"], expect="add",
          articles=[art("FAA orders temporary grounding of Boeing 737 MAX fleet",
@@ -56,11 +59,13 @@ SCENARIOS = [
     dict(name="DOJ criminal probe (legal)", ticker="TSLA",
          catalysts=["Tesla begins volume production of its next-gen vehicle"], expect="add",
          articles=[art("DOJ opens criminal investigation into Tesla Autopilot claims",
-                       "Prosecutors are examining whether Tesla misled consumers and investors about its driver-assistance capabilities.")] + NOISE),
+                       "Prosecutors are examining whether Tesla misled consumers and investors about its "
+                       "driver-assistance capabilities.")] + NOISE),
     dict(name="CEO abrupt resignation (executive)", ticker="DIS",
          catalysts=["Disney streaming subscriber growth reaccelerates"], expect="add",
          articles=[art("Disney CEO steps down effective immediately",
-                       "The board announced the chief executive has resigned, with a search underway; shares fell in after-hours trading.")] + NOISE),
+                       "The board announced the chief executive has resigned, with a search underway; shares "
+                       "fell in after-hours trading.")] + NOISE),
 
     # ---- negatives: no material untracked event -> expect QUIET ----
     dict(name="pure price/opinion noise", ticker="NVDA",
@@ -108,9 +113,11 @@ def run():
         if want_add and did_add:
             tp += 1
         elif want_add and not did_add:
-            fn += 1; misses.append(("MISS (no add)", sc["name"]))
+            fn += 1
+            misses.append(("MISS (no add)", sc["name"]))
         elif not want_add and did_add:
-            fp += 1; misses.append(("FALSE ADD", sc["name"], adds[0].rationale))
+            fp += 1
+            misses.append(("FALSE ADD", sc["name"], adds[0].rationale))
         else:
             tn += 1
         mark = "✓" if ok else "✗"
