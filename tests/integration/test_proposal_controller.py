@@ -333,7 +333,7 @@ class TestApproveQuantProposal:
         quant_prop = _quant_proposal()
         mock_service.approve_quant_proposal.return_value = quant_prop
 
-        with patch("app.api.v1.proposal.scheduler") as mock_scheduler:
+        with patch("app.api.v1.proposal.scheduler"):
             async with client as c:
                 resp = await c.put(f"{PREFIX}/quant/{PROPOSAL_ID}/approve")
 
@@ -403,7 +403,7 @@ class TestApproveCatalystProposal:
         catalyst_prop = _catalyst_proposal()
         mock_service.approve_catalyst_proposal.return_value = catalyst_prop
 
-        with patch("app.api.v1.proposal.scheduler") as mock_scheduler:
+        with patch("app.api.v1.proposal.scheduler"):
             async with client as c:
                 resp = await c.put(f"{PREFIX}/catalyst/{PROPOSAL_ID}/approve")
 

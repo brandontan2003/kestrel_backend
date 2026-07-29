@@ -24,6 +24,7 @@ class UserHistory(Base, Auditable):
     telegram_link_token = Column(String(36), nullable=True)
     telegram_token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
+
 @register_history(UserHistory)
 class User(Base, Auditable):
     __tablename__ = "tbl_users"

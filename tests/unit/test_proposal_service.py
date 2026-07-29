@@ -56,6 +56,7 @@ def _make_service(
         catalyst_proposal_repository=catalyst_proposal_repo or AsyncMock(),
     )
 
+
 def common_proposal_fields(p: MagicMock):
     p.source_evaluation_id = _uid()
     p.created_at = datetime.now()
@@ -65,6 +66,7 @@ def common_proposal_fields(p: MagicMock):
     p.source_article_url = None
     p.rejection_reason = None
     p.resolved_at = None
+
 
 def _pending_quant_proposal(
         proposal_type: ProposalTypeEnum = ProposalTypeEnum.UPDATE,
@@ -342,7 +344,7 @@ class TestRejectQuantProposal:
         quant_proposal_repo.reject_quant_proposal.return_value = rejected
 
         svc = _make_service(quant_proposal_repo=quant_proposal_repo)
-        result = await svc.reject_quant_proposal(proposal.quant_proposal_id, user_id, "stale data")
+        await svc.reject_quant_proposal(proposal.quant_proposal_id, user_id, "stale data")
 
         quant_proposal_repo.reject_quant_proposal.assert_awaited_once_with(proposal, "stale data")
 

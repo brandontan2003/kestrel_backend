@@ -10,10 +10,12 @@ overrides don't leak between test classes or modules.
 
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
+
 from app.database_registry import override_engine
 from app.main import app
 
 override_engine(create_async_engine("sqlite+aiosqlite:///:memory:"))
+
 
 @pytest.fixture(autouse=True)
 def clear_dependency_overrides():
