@@ -38,6 +38,7 @@ class ThesesProposalRepository:
         proposal.theses_proposal_status = ProposalStatusEnum.APPROVED
         proposal.resolved_at = datetime.now(timezone.utc)
         await self._db.flush()
+        await self._db.commit()
         return proposal
 
     async def reject_theses_proposal(self, proposal: ThesesProposal, rejection_reason: str) -> ThesesProposal:
@@ -45,6 +46,7 @@ class ThesesProposalRepository:
         proposal.rejection_reason = rejection_reason
         proposal.resolved_at = datetime.now(timezone.utc)
         await self._db.flush()
+        await self._db.commit()
         return proposal
 
 

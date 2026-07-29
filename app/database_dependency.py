@@ -7,7 +7,8 @@ async def get_db():
         try:
             yield session
             # clean exit → commit
-            await session.commit()
+            if session.is_active:
+                await session.commit()
         except Exception:
             # any error → rollback
             await session.rollback()

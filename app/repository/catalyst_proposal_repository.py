@@ -93,19 +93,25 @@ class CatalystProposalRepository:
                                                                  exclude_proposal_id=approved_proposal_id)
         reason = f"Superseded by approval of {approved_proposal_id}"
         for proposal in superseded:
-            await self.reject_catalyst_proposal(proposal, rejection_reason=reason)
+            await self._reject_catalyst_proposal_flush(proposal, rejection_reason=reason)
 
     async def approve_catalyst_proposal(self, proposal: CatalystProposal) -> CatalystProposal:
         proposal.catalyst_proposal_status = ProposalStatusEnum.APPROVED
         proposal.resolved_at = datetime.now(timezone.utc)
         await self._db.flush()
+        await self._db.commit()
         return proposal
 
-    async def reject_catalyst_proposal(self, proposal: CatalystProposal, rejection_reason: str) -> CatalystProposal:
+    async def _reject_catalyst_proposal_flush(self, proposal: CatalystProposal, rejection_reason: str) -> CatalystProposal:
         proposal.catalyst_proposal_status = ProposalStatusEnum.REJECTED
         proposal.rejection_reason = rejection_reason
         proposal.resolved_at = datetime.now(timezone.utc)
         await self._db.flush()
+        return proposal
+
+    async def reject_catalyst_proposal(self, proposal: CatalystProposal, rejection_reason: str) -> CatalystProposal:
+        await self._reject_catalyst_proposal_flush(proposal, rejection_reason)
+        await self._db.commit()
         return proposal
 
 

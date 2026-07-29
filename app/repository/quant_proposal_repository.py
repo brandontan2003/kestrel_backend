@@ -87,19 +87,25 @@ class QuantProposalRepository:
                                                                   exclude_proposal_id=approved_proposal_id)
         reason = f"Superseded by approval of {approved_proposal_id}"
         for proposal in superseded:
-            await self.reject_quant_proposal(proposal, rejection_reason=reason)
+            await self._reject_quant_proposal_flush(proposal, rejection_reason=reason)
 
     async def approve_quant_proposal(self, proposal: QuantProposal) -> QuantProposal:
         proposal.quant_proposal_status = ProposalStatusEnum.APPROVED
         proposal.resolved_at = datetime.now(timezone.utc)
         await self._db.flush()
+        await self._db.commit()
         return proposal
 
-    async def reject_quant_proposal(self, proposal: QuantProposal, rejection_reason: str) -> QuantProposal:
+    async def _reject_quant_proposal_flush(self, proposal: QuantProposal, rejection_reason: str) -> QuantProposal:
         proposal.quant_proposal_status = ProposalStatusEnum.REJECTED
         proposal.rejection_reason = rejection_reason
         proposal.resolved_at = datetime.now(timezone.utc)
         await self._db.flush()
+        return proposal
+
+    async def reject_quant_proposal(self, proposal: QuantProposal, rejection_reason: str) -> QuantProposal:
+        await self._reject_quant_proposal_flush(proposal, rejection_reason)
+        await self._db.commit()
         return proposal
 
 
