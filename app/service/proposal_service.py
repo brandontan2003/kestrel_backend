@@ -1,7 +1,9 @@
 import asyncio
+import time
 
 from fastapi import Depends
 
+from app.core.logger import logger
 from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesProposalResponse, \
     RetrieveAllQuantProposalResponse, RetrieveQuantProposalResponse, RetrieveAllCatalystProposalResponse, \
     RetrieveCatalystProposalResponse, RetrieveAllProposalsResponse
@@ -33,12 +35,13 @@ class ProposalService:
 
     async def get_all_proposals(self, user_id: str, status: ProposalStatusEnum | None, page: int,
                                 page_size: int) -> RetrieveAllProposalsResponse:
+        t0 = time.perf_counter()
         theses, quant, catalyst = await asyncio.gather(
             self.get_all_theses_proposals(user_id, status, page, page_size),
             self.get_all_quant_proposals(user_id, status, page, page_size),
             self.get_all_catalyst_proposals(user_id, status, page, page_size)
         )
-
+        logger.info(f"[PROPOSALS] total: {time.perf_counter() - t0:.3f}s")
         return RetrieveAllProposalsResponse(theses_proposals=theses, quant_proposals=quant, catalyst_proposals=catalyst)
 
     async def get_all_theses_proposals(self, user_id: str, theses_proposal_status: ProposalStatusEnum | None, page: int,
