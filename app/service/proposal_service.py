@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import Depends
 
 from app.dto.proposal import RetrieveAllThesesProposalResponse, RetrieveThesesProposalResponse, \
@@ -31,9 +33,11 @@ class ProposalService:
 
     async def get_all_proposals(self, user_id: str, status: ProposalStatusEnum | None, page: int,
                                 page_size: int) -> RetrieveAllProposalsResponse:
-        theses = await self.get_all_theses_proposals(user_id, status, page, page_size)
-        quant = await self.get_all_quant_proposals(user_id, status, page, page_size)
-        catalyst = await self.get_all_catalyst_proposals(user_id, status, page, page_size)
+        theses, quant, catalyst = await asyncio.gather(
+            self.get_all_theses_proposals(user_id, status, page, page_size),
+            self.get_all_quant_proposals(user_id, status, page, page_size),
+            self.get_all_catalyst_proposals(user_id, status, page, page_size)
+        )
 
         return RetrieveAllProposalsResponse(theses_proposals=theses, quant_proposals=quant, catalyst_proposals=catalyst)
 
