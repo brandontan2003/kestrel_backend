@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
-from app.config import get_db
+from app.database_dependency import get_db
 from app.dto.telegram import UpdateTelegramDetailRequest
 from app.models.users import User
 

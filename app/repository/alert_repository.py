@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select, func
 
-from app.config import get_db
+from app.database_dependency import get_db
 from app.dto.alert import CreateAlertRequest
 from app.models import Alert
 from common.enums.AlertsEnum import AlertStatusEnum

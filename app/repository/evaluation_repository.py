@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import func, select
 
-from app.config import get_db
+from app.database_dependency import get_db
 from app.models import Evaluation, Theses
 
 

@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
-from app.config import get_db
+from app.database_dependency import get_db
 from app.enums.StockEnum import StockStatusEnum
 from app.models import Stock
 
