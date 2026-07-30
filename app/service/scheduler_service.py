@@ -125,7 +125,7 @@ class SchedulerService:
         # 1–3. News → classify → apply state machine (only if there are catalysts to judge)
         if catalyst_rows:
             since = datetime.now(timezone.utc) - timedelta(hours=settings.SCHEDULER_LOOKBACK_HOURS)
-            articles = news.fetch(ticker, since=since)
+            articles = await asyncio.to_thread(news.fetch, ticker, since=since)
 
             # Dedup across polls: drop articles already recorded on any catalyst's evidence.
             seen: set[str] = set()
@@ -135,7 +135,8 @@ class SchedulerService:
             logger.info("thesis %s (%s): %d articles, %d fresh", theses_id, ticker, len(articles), len(fresh))
 
             if fresh:
-                verdicts = llm.classify_batch(fresh, ml_adapter.catalyst_defs_for_classify(catalyst_rows))
+                verdicts = await asyncio.to_thread(
+                    llm.classify_batch, fresh, ml_adapter.catalyst_defs_for_classify(catalyst_rows))
                 for v in verdicts:
                     catalyst = by_id.get(v.catalyst_id)
                     if catalyst is None:
@@ -149,8 +150,9 @@ class SchedulerService:
                     prompt_version = v.prompt_version
 
         # 4. Quant + catalyst states → signal
-        metric_values = quant_service.fetch_metrics(ticker) if quant_conditions else {}
+        metric_values = await asyncio.to_thread(quant_service.fetch_metrics, ticker) if quant_conditions else {}
         quant_results = quant_service.evaluate_conditions(quant_conditions, metric_values)
+
         catalyst_states = {c.catalyst_id: ml_adapter.normalize_state(c.state) for c in catalyst_rows}
         thesis_dict = ml_adapter.build_thesis_dict(thesis, quant_conditions, catalyst_rows)
         result = evaluator.evaluate(thesis_dict, quant_results, catalyst_states)
@@ -182,7 +184,8 @@ class SchedulerService:
         if result["signal"] and not was_firing:
             await self._on_signal_fired(thesis, evaluation, session)
 
-    async def _generate_proposals(self, session, theses_id: str, thesis_dict: dict, result: dict,
+    @staticmethod
+    async def _generate_proposals(session, theses_id: str, thesis_dict: dict, result: dict,
                                   evaluation_id: str, catalyst_states: dict, articles: list) -> None:
         """Best-effort: the sweep's own work is what matters, so a failed review
         is logged and dropped rather than allowed to roll back the evaluation."""
@@ -198,7 +201,7 @@ class SchedulerService:
         if not articles:
             try:
                 since = datetime.now(timezone.utc) - timedelta(hours=settings.SCHEDULER_LOOKBACK_HOURS)
-                articles = news.fetch(thesis_dict["ticker"], since=since)
+                articles = await asyncio.to_thread(news.fetch, thesis_dict["ticker"], since=since)
                 logger.info("thesis %s (%s): reviewer fetched %d articles for discovery",
                             theses_id, thesis_dict.get("ticker"), len(articles))
             except Exception:
@@ -229,7 +232,8 @@ class SchedulerService:
         except Exception:
             logger.exception("sweep_thesis: thesis %s failed", theses_id)
 
-    async def _on_signal_fired(self, thesis: Theses, evaluation: Evaluation, session: AsyncSession) -> None:
+    @staticmethod
+    async def _on_signal_fired(thesis: Theses, evaluation: Evaluation, session: AsyncSession) -> None:
         """A thesis's signal just went true. Best-effort live push to the owner.
 
         Phase 2 proper still owns: persisting an Alert row + the frontend
