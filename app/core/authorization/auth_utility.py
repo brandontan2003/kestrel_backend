@@ -30,7 +30,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         value=access_token,
         httponly=True,
         secure=is_prod,
-        samesite="none",
+        samesite="none" if is_prod else 'strict',
         max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path=_COOKIE_PATH,
     )
@@ -39,7 +39,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         value=refresh_token,
         httponly=True,
         secure=is_prod,
-        samesite="none",
+        samesite="none" if is_prod else 'strict',
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
         path=f"{_COOKIE_PATH}/auth",  # /api/v1/auth only
     )
@@ -57,13 +57,13 @@ def clear_auth_cookies(response: Response) -> None:
         key=ACCESS_COOKIE_KEY,
         httponly=True,
         secure=is_prod,
-        samesite="none",
+        samesite="none" if is_prod else 'strict',
         path=_COOKIE_PATH,
     )
     response.delete_cookie(
         key=REFRESH_COOKIE_KEY,
         httponly=True,
         secure=is_prod,
-        samesite="none",
+        samesite="none" if is_prod else 'strict',
         path=f"{_COOKIE_PATH}/auth",  # /api/v1/auth only
     )
