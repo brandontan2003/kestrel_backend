@@ -64,9 +64,7 @@ def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list
     """
     if previous is None or states_changed:
         return False
-    if result.get("status") != previous.evaluation_status:
-        return False
-    if bool(result.get("signal")) != bool(previous.signal):
+    if result.get("status") != previous.evaluation_status or bool(result.get("signal")) != bool(previous.signal):
         return False
 
     # Any article newer than the previous evaluation is unreviewed news.
@@ -78,6 +76,10 @@ def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list
             return False
 
     # Quant side: same conditions, same resolution, values within drift tolerance.
+    return is_duplicated_quant(previous, result)
+
+
+def is_duplicated_quant(previous: Evaluation, result: dict) -> bool:
     prev_results = previous.results if isinstance(previous.results, dict) else {}
     prev_detail = {d.get("quant_condition_id"): d
                    for d in prev_results.get("quant_detail") or [] if isinstance(d, dict)}

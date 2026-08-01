@@ -238,20 +238,20 @@ def _build_user_message(thesis: dict, evaluation: dict, catalyst_states: dict[st
     metric_names = ", ".join(sorted(metrics)) or "(unrestricted)"
 
     return (
-        f"TICKER: {thesis.get('ticker', '?')}\n"
-        f"QUANT MODE: {thesis.get('quant_mode', 'all')} "
-        f"(how the quant conditions combine)\n"
-        f"CATALYST MODE: {thesis.get('catalyst_mode', 'all')} "
-        f"(how the catalysts combine)\n\n"
-        f"QUANT CONDITIONS:\n" + "\n".join(quant_lines) + "\n\n"
-        f"CATALYSTS:\n" + "\n".join(catalyst_lines) + "\n\n"
-        f"LATEST SWEEP:\n"
-        f"- status: {evaluation.get('status', '?')}\n"
-        f"- reason: {evaluation.get('reason', '')}\n"
-        f"- why it isn't firing:\n" + "\n".join(blocked_lines) + "\n\n"
-        f"FETCHABLE METRICS: {metric_names}\n\n"
-        f"RECENT NEWS (newest first; headline + body — read the body, that's where materiality is):\n"
-        + "\n".join(article_lines)
+        f"""
+        TICKER: {thesis.get('ticker', '?')}\n
+        QUANT MODE: {thesis.get('quant_mode', 'all')}
+        (how the quant conditions combine)\n
+        QUANT CONDITIONS:\n {'\n'.join(quant_lines)} \n\n
+        CATALYSTS:\n {'\n'.join(catalyst_lines)} \n\n
+        LATEST SWEEP:\n
+        - status: {evaluation.get('status', '?')}\n
+        - reason: {evaluation.get('reason', '')}\n
+        - why it isn't firing:\n {'\n'.join(blocked_lines)} \n\n
+        FETCHABLE METRICS: {metric_names}\n\n
+        RECENT NEWS (newest first; headline + body — read the body, that's where materiality is):\n
+        {'\n'.join(article_lines)}
+        """
     )
 
 
