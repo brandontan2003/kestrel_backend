@@ -69,7 +69,7 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
 
     quant_section = f"\n📊 *Quant*\n{quant_lines}" if quant_lines else ""
     catalyst_section = f"\n🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
-    reason_section = f"{reason}\n" if reason is not None else ""
+    reason_section = f"{reason}".strip() if reason is not None else ""
 
     return textwrap.dedent(f"""
          🟢 Signal firing: *{ticker}*
