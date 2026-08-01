@@ -23,7 +23,9 @@ class ThesesProposalRepository:
 
     async def get_all_theses_proposal_by_user(self, user_id: str, page: int, page_size: int,
                                               status: str | None = None) -> tuple[list[ThesesProposal], int]:
-        base = select(ThesesProposal).where(ThesesProposal.user_id == user_id)
+        base = (select(ThesesProposal).where(ThesesProposal.user_id == user_id)
+                .order_by(ThesesProposal.created_at.desc()))
+
         if status:
             base = base.where(ThesesProposal.theses_proposal_status == status)
 

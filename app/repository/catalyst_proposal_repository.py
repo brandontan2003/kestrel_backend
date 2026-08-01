@@ -30,6 +30,7 @@ class CatalystProposalRepository:
             select(CatalystProposal)
             .join(Theses, Theses.theses_id == CatalystProposal.theses_id)
             .where(Theses.user_id == user_id)
+            .order_by(CatalystProposal.created_at.desc())
         )
         if status:
             base = base.where(CatalystProposal.catalyst_proposal_status == status)
