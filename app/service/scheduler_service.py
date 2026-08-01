@@ -208,7 +208,8 @@ class SchedulerService:
                 logger.warning("scheduler: reviewer news fetch failed for %s", thesis_dict.get("ticker"))
 
         try:
-            generator = ProposalGenerator(QuantProposalRepository(session), CatalystProposalRepository(session))
+            generator = ProposalGenerator(QuantProposalRepository(session), CatalystProposalRepository(session),
+                                          UserRepository(session), AlertRepository(session))
             await generator.generate(
                 theses_id=theses_id,
                 thesis_dict=thesis_dict,

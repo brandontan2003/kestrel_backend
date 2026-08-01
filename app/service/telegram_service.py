@@ -112,6 +112,12 @@ class TelegramService:
         except Exception as e:
             logger.error(f"Telegram send failed to {chat_id}: {e}")
 
+    async def send_proposal_on_telegram(self, chat_id: str, text: str, user_id: str):
+        try:
+            await self._safe_send(chat_id, text, parse_mode="Markdown")
+        except Exception:
+            logger.warning("Scheduler: Telegram push failed for user %s", user_id)
+
     async def send_notification_on_telegram(self, alert: Alert, chat_id: str, text: str, user_id: str):
         try:
             await self._safe_send(chat_id, text, parse_mode="Markdown")

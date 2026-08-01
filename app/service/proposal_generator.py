@@ -20,9 +20,12 @@ carries two kinds of key:
 from __future__ import annotations
 
 from app.core.logger import logger
+from app.repository.alert_repository import AlertRepository
 from app.repository.catalyst_proposal_repository import CatalystProposalRepository
 from app.repository.quant_proposal_repository import QuantProposalRepository
+from app.repository.user_repository import UserRepository
 from app.service import quant_service
+from app.service.telegram_service import TelegramService
 from common.enums.CatalystEnum import CatalystState
 from common.enums.ProposalEnum import ProposalTypeEnum
 from pipeline import proposals
@@ -38,11 +41,63 @@ _ACTION_TO_TYPE = {
 }
 
 
+def _format_quant_proposal(change: dict) -> str:
+    ticker = change.get("ticker", "")
+    metric = change.get("currentMetric") or change.get("metric", "")
+    current_op = change.get("currentOperator", "")
+    current_val = change.get("currentValue", "")
+    new_op = change.get("operator", "")
+    new_val = change.get("value", "")
+    rationale = change.get("rationale", "")
+    live = change.get("liveValue")
+
+    if new_val:
+        change_line = f"{metric} {current_op} {current_val}  →  {metric} {new_op} {new_val}"
+    else:
+        change_line = f"Remove {metric} {current_op} {current_val}"
+
+    live_line = f"Live value: {live}\n" if live is not None else ""
+    rationale_line = f"{rationale}\n" if rationale else ""
+
+    return (f"""
+         💡New proposal for *{ticker}*\n
+         \n
+         {change_line}\n
+         {live_line}\n
+         {rationale_line}\n
+         \n👉 Review → https://kestrel-rose.vercel.app/proposals""")
+
+
+def _format_catalyst_proposal(change: dict) -> str:
+    ticker = change.get("ticker", "")
+    description = change.get("description", "")
+    current = change.get("currentDescription", "")
+    rationale = change.get("rationale", "")
+
+    if current and description:
+        change_line = f"\"{current}\"\n→  \"{description}\""
+    elif description:
+        change_line = f"Add: \"{description}\""
+    else:
+        change_line = f"Remove: \"{current}\""
+
+    rationale_line = f"{rationale}\n" if rationale else ""
+
+    return (f"""
+         💡New proposal for *{ticker}*\n
+         \n
+         {change_line}\n
+         {rationale_line}\n
+         \n👉 Review → https://kestrel-rose.vercel.app/proposals""")
+
+
 class ProposalGenerator:
-    def __init__(self, quant_proposal_repo: QuantProposalRepository,
-                 catalyst_proposal_repo: CatalystProposalRepository):
+    def __init__(self, quant_proposal_repo: QuantProposalRepository, catalyst_proposal_repo: CatalystProposalRepository,
+                 user_repo: UserRepository, alert_repo: AlertRepository):
         self._quant_repo = quant_proposal_repo
         self._catalyst_repo = catalyst_proposal_repo
+        self._user_repo = user_repo
+        self._alert_repo = alert_repo
 
     async def generate(self, *, theses_id: str, thesis_dict: dict, evaluation: dict, evaluation_id: str,
                        catalyst_states: dict[str, str], articles: list | None = None) -> int:
@@ -114,7 +169,7 @@ class ProposalGenerator:
             logger.info("thesis %s: skipping duplicate quant %s already pending", theses_id, s.action)
             return False
 
-        await self._quant_repo.create_quant_proposal(
+        quant_proposal = await self._quant_repo.create_quant_proposal(
             theses_id=theses_id,
             quant_condition_id=s.target_id,  # NULL for an ADD
             proposal_type=_ACTION_TO_TYPE[s.action],
@@ -124,6 +179,15 @@ class ProposalGenerator:
             source_article_url=s.source_article_url,
             source_evaluation_id=evaluation_id,
         )
+        telegram_service = TelegramService(user_repo=self._user_repo, alert_repo=self._alert_repo)
+
+        theses = quant_proposal.theses_mapping
+        user_id = theses.user_id
+        chat_id = theses.users_mapping.telegram_chat_id
+        if chat_id:
+            telegram_message = _format_quant_proposal(quant_proposal.proposed_change)
+            await telegram_service.send_proposal_on_telegram(chat_id, telegram_message, user_id)
+
         return True
 
     # ----- catalyst --------------------------------------------------------- #
@@ -149,7 +213,7 @@ class ProposalGenerator:
             logger.info("thesis %s: skipping duplicate catalyst %s already pending", theses_id, s.action)
             return False
 
-        await self._catalyst_repo.create_catalyst_proposal(
+        catalyst_proposal = await self._catalyst_repo.create_catalyst_proposal(
             theses_id=theses_id,
             catalyst_id=s.target_id,  # NULL for an ADD
             proposal_type=_ACTION_TO_TYPE[s.action],
@@ -159,6 +223,16 @@ class ProposalGenerator:
             source_article_url=s.source_article_url,
             source_evaluation_id=evaluation_id,
         )
+
+        telegram_service = TelegramService(user_repo=self._user_repo, alert_repo=self._alert_repo)
+
+        theses = catalyst_proposal.theses_mapping
+        user_id = theses.user_id
+        chat_id = theses.users_mapping.telegram_chat_id
+        if chat_id:
+            telegram_message = _format_catalyst_proposal(catalyst_proposal.proposed_change)
+            await telegram_service.send_proposal_on_telegram(chat_id, telegram_message, user_id)
+
         return True
 
 
