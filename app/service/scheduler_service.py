@@ -69,15 +69,17 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
 
     quant_section = f"\n📊 *Quant*\n{quant_lines}" if quant_lines else ""
     catalyst_section = f"\n🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
+    reason_section = f"{reason}\n" if reason is not None else ""
 
-    text = textwrap.dedent(f"""\
-    🟢 Signal firing: *{ticker}*
+    return textwrap.dedent(f"""
+         🟢 Signal firing: *{ticker}*
 
-    {reason}
-    {quant_section}
-    {catalyst_section}
+         {reason_section}
+
+         {quant_section}
+
+         {catalyst_section}
     """).strip()
-    return text
 
 
 def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list,
