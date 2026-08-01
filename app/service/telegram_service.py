@@ -108,18 +108,21 @@ class TelegramService:
             logger.warning("Telegram not configured (TELEGRAM_BOT_TOKEN unset); skipping message to %s", chat_id)
             return
         try:
-            await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
+            response = await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
+            logger.info(f"Telegram response: {response}")
         except Exception as e:
             logger.error(f"Telegram send failed to {chat_id}: {e}")
 
     async def send_proposal_on_telegram(self, chat_id: str, text: str, user_id: str):
         try:
+            logger.debug(f"Proposal telegram message: %r", text)
             await self._safe_send(chat_id, text, parse_mode="Markdown")
         except Exception:
             logger.warning("Scheduler: Telegram push failed for user %s", user_id)
 
     async def send_notification_on_telegram(self, alert: Alert, chat_id: str, text: str, user_id: str):
         try:
+            logger.info(f"Signal telegram message: %r", text)
             await self._safe_send(chat_id, text, parse_mode="Markdown")
             await self._alert_repo.update_alert_status(alert, AlertStatusEnum.SENT)
         except Exception:

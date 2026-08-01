@@ -56,7 +56,7 @@ _QUANT_DRIFT_REL_TOL = 1e-3
 
 def _format_signal_message(ticker: str, reason: str | None, results: dict) -> str:
     quant_lines = "\n".join(
-        f"  • {d['metric']} {d['operator']} {d['threshold']} - live: {d['value']}"
+        f"  • {d['metric']} {d['operator']} {d['threshold']} → live: {d['value']}"
         for d in results.get("quant_detail") or []
         if d.get("passes")
     )
@@ -77,8 +77,6 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
     {quant_section}
     {catalyst_section}
     """).strip()
-
-    logger.info("telegram text: %r", text)
     return text
 
 
