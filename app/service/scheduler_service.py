@@ -78,7 +78,7 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
     {catalyst_section}
     """).strip()
 
-    logger.info(f"Telegram Message: {text}")
+    logger.info("text: %r", text)
     return text
 
 
@@ -373,6 +373,7 @@ class SchedulerService:
             )
             alert = await alert_repo.create_alert(build_request)
 
+            logger.info("results: %r", evaluation.results)
             text = _format_signal_message(ticker, reason, evaluation.results or {})
             await telegram_service.send_notification_on_telegram(alert, chat_id, text, user_id)
 
