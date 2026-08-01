@@ -15,6 +15,7 @@ gated by SCHEDULER_ENABLED so dev/test processes stay quiet by default.
 from __future__ import annotations
 
 import asyncio
+import math
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,6 +44,59 @@ from pipeline import catalysts, evaluator, llm, news
 # Verdicts whose article never confirms anything don't need persisting as evidence
 # unless they bear on the catalyst; the state machine still returns a transition.
 _NO_PROMPT = "no_classification"
+
+# How many past sweeps of quant_detail the proposal reviewer sees per condition.
+_QUANT_HISTORY_SWEEPS = 10
+
+# A metric drifting less than this (relative) between sweeps is noise, not a
+# reason to re-review the thesis. 0.1% of a P/E is not a development.
+_QUANT_DRIFT_REL_TOL = 1e-3
+
+
+def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list,
+                       states_changed: bool) -> bool:
+    """True when this sweep gave the proposal reviewer nothing it hasn't already
+    seen — the cheap gate in front of the review LLM call.
+
+    Deliberately conservative: any doubt (no previous evaluation, a catalyst
+    transition, a status/signal flip, a fresher article, a quant value that
+    moved) reads as "new", and the review runs.
+    """
+    if previous is None or states_changed:
+        return False
+    if result.get("status") != previous.evaluation_status or bool(result.get("signal")) != bool(previous.signal):
+        return False
+
+    # Any article newer than the previous evaluation is unreviewed news.
+    cutoff = previous.created_at
+    if cutoff is not None:
+        if cutoff.tzinfo is None:
+            cutoff = cutoff.replace(tzinfo=timezone.utc)
+        if any(a.published_at > cutoff for a in articles):
+            return False
+
+    # Quant side: same conditions, same resolution, values within drift tolerance.
+    return is_duplicated_quant(previous, result)
+
+
+def is_duplicated_quant(previous: Evaluation, result: dict) -> bool:
+    prev_results = previous.results if isinstance(previous.results, dict) else {}
+    prev_detail = {d.get("quant_condition_id"): d
+                   for d in prev_results.get("quant_detail") or [] if isinstance(d, dict)}
+    cur_detail = result.get("quant_detail") or []
+    if {d.get("quant_condition_id") for d in cur_detail} != set(prev_detail):
+        return False
+    for d in cur_detail:
+        prev = prev_detail[d.get("quant_condition_id")]
+        if prev.get("passes") != d.get("passes"):
+            return False
+        a, b = prev.get("value"), d.get("value")
+        if (a is None) != (b is None):
+            return False
+        if a is not None and b is not None and \
+                not math.isclose(float(a), float(b), rel_tol=_QUANT_DRIFT_REL_TOL):
+            return False
+    return True
 
 
 class SchedulerService:
@@ -117,10 +171,15 @@ class SchedulerService:
         by_id = {c.catalyst_id: c for c in catalyst_rows}
 
         prompt_version = _NO_PROMPT
-        # Populated below for a catalyst thesis (classification). A quant-only
+        # Populated below for a catalyst thesis (classification). None — not [] —
+        # distinguishes "never fetched" from "fetched, genuinely no news", so the
+        # reviewer only spends its own fetch in the first case. A quant-only
         # thesis fetches none here; the reviewer fetches its own in
         # _generate_proposals so it can still DISCOVER a new catalyst from the news.
-        articles: list = []
+        articles: list | None = None
+        # Did any catalyst actually move this sweep? Feeds the reviewer's
+        # change-gate: an unchanged world needs no re-review.
+        states_changed = False
 
         # 1–3. News → classify → apply state machine (only if there are catalysts to judge)
         if catalyst_rows:
@@ -147,6 +206,7 @@ class SchedulerService:
                         catalyst, transition.new_state.value,
                         ml_adapter.verdict_to_evidence(v), transition.changed,
                     )
+                    states_changed = states_changed or transition.changed
                     prompt_version = v.prompt_version
 
         # 4. Quant + catalyst states → signal
@@ -179,36 +239,57 @@ class SchedulerService:
         # 5. Review the thesis itself against what the sweep found, and queue any
         # suggested edits for the user to approve.
         await self._generate_proposals(session, theses_id, thesis_dict, result,
-                                       evaluation.evaluation_id, catalyst_states, articles)
+                                       evaluation.evaluation_id, catalyst_states, articles,
+                                       previous, states_changed)
 
         if result["signal"] and not was_firing:
             await self._on_signal_fired(thesis, evaluation, session)
 
     @staticmethod
     async def _generate_proposals(session, theses_id: str, thesis_dict: dict, result: dict,
-                                  evaluation_id: str, catalyst_states: dict, articles: list) -> None:
+                                  evaluation_id: str, catalyst_states: dict, articles: list | None,
+                                  previous: Evaluation | None, states_changed: bool) -> None:
         """Best-effort: the sweep's own work is what matters, so a failed review
         is logged and dropped rather than allowed to roll back the evaluation."""
         if not settings.PROPOSALS_ENABLED:
             return
 
         # Discovery needs news. A catalyst thesis already fetched it above; a
-        # quant-only thesis did not — so fetch it here whenever we don't already
-        # have articles, including when the signal is firing. A firing thesis can
-        # still surface fresh events worth proposing on, so we spend the call.
-        # Without this, a quant-only thesis — the common case — could never be
-        # told about a material event worth adding a catalyst for.
-        if not articles:
+        # quant-only thesis did not — so fetch it here whenever we haven't
+        # fetched yet (None; an empty fetch is NOT refetched), including when
+        # the signal is firing. A firing thesis can still surface fresh events
+        # worth proposing on, so we spend the call. Without this, a quant-only
+        # thesis — the common case — could never be told about a material event
+        # worth adding a catalyst for.
+        if articles is None:
             try:
                 since = datetime.now(timezone.utc) - timedelta(hours=settings.SCHEDULER_LOOKBACK_HOURS)
                 articles = await asyncio.to_thread(news.fetch, thesis_dict["ticker"], since=since)
                 logger.info("thesis %s (%s): reviewer fetched %d articles for discovery",
                             theses_id, thesis_dict.get("ticker"), len(articles))
             except Exception:
+                articles = []
                 logger.warning("scheduler: reviewer news fetch failed for %s", thesis_dict.get("ticker"))
 
+        # Change-gate: the reviewer is deterministic-ish over its inputs, so if
+        # literally nothing moved since the last sweep — same status/signal, no
+        # catalyst transition, no newer article, quant values unchanged — a
+        # re-review can only repeat itself. Skip the LLM call.
+        if _nothing_new_since(previous, result, articles, states_changed):
+            logger.info("thesis %s: nothing new since last sweep — skipping proposal review", theses_id)
+            return
+
         try:
-            generator = ProposalGenerator(QuantProposalRepository(session), CatalystProposalRepository(session))
+            # Sweep history for the reviewer: last N evaluations BEFORE this one
+            # (the current sweep is already flushed, so filter it out) — what
+            # turns "this metric never resolves" into a countable fact.
+            eval_repo = EvaluationRepository(session)
+            recent = await eval_repo.get_recent_evaluations(theses_id, limit=_QUANT_HISTORY_SWEEPS + 1)
+            quant_history = ml_adapter.quant_history_summary(
+                [e for e in recent if e.evaluation_id != evaluation_id][:_QUANT_HISTORY_SWEEPS])
+
+            generator = ProposalGenerator(session, QuantProposalRepository(session),
+                                          CatalystProposalRepository(session))
             await generator.generate(
                 theses_id=theses_id,
                 thesis_dict=thesis_dict,
@@ -216,6 +297,7 @@ class SchedulerService:
                 evaluation_id=evaluation_id,
                 catalyst_states=catalyst_states,
                 articles=articles,
+                quant_history=quant_history,
             )
         except Exception:
             logger.exception("scheduler: proposal generation failed for thesis %s", theses_id)

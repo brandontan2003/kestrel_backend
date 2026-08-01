@@ -102,6 +102,11 @@ def fetch(
     if failures and len(failures) == len(sources):
         raise RuntimeError(f"all news sources failed for {ticker}: {failures}")
 
+    # Oldest-first is a load-bearing contract: the scheduler applies classifier
+    # verdicts in this order, so the catalyst state machine sees news
+    # chronologically and the final state reflects the LATEST article ("confirmed
+    # Tuesday, invalidated Thursday" must end invalidated). The reviewer's
+    # newest-first preference is proposals.py's concern, applied there.
     return sorted(_dedup(collected), key=lambda a: a.published_at)
 
 

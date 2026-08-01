@@ -71,6 +71,22 @@ class CatalystProposalRepository:
         )
         return list(result.scalars().all())
 
+    async def get_recently_rejected_by_theses_id(self, theses_id: str,
+                                                 since: datetime) -> list[CatalystProposal]:
+        """Rejected proposals resolved on/after `since` — the generator's
+        suppression set, so a suggestion the user already said no to isn't
+        re-queued every sweep until its source article ages out. Includes
+        supersede-rejections; harmless, since after an approval the row changed
+        and an identical re-proposal dies on the noop guard anyway."""
+        result = await self._db.execute(
+            select(CatalystProposal).where(
+                CatalystProposal.theses_id == theses_id,
+                CatalystProposal.catalyst_proposal_status == ProposalStatusEnum.REJECTED,
+                CatalystProposal.resolved_at >= since,
+            )
+        )
+        return list(result.scalars().all())
+
     async def get_pending_updates_for_catalyst(self, catalyst_id: str,
                                                exclude_proposal_id: str) -> list[CatalystProposal]:
         """Return all other pending UPDATE proposals for the same catalyst."""
