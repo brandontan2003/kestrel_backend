@@ -110,7 +110,7 @@ class TelegramService:
         try:
             await bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode)
         except Exception as e:
-            logger.error(f"Telegram send failed to {chat_id}: %r", e)
+            logger.error(f"Telegram send failed to {chat_id}: {e}")
 
     async def send_proposal_on_telegram(self, chat_id: str, text: str, user_id: str):
         try:
@@ -121,7 +121,7 @@ class TelegramService:
 
     async def send_notification_on_telegram(self, alert: Alert, chat_id: str, text: str, user_id: str):
         try:
-            logger.info("Signal telegram message: %r", text)
+            logger.debug("Signal telegram message: %r", text)
             await self._safe_send(chat_id, text, parse_mode="Markdown")
             await self._alert_repo.update_alert_status(alert, AlertStatusEnum.SENT)
         except Exception:

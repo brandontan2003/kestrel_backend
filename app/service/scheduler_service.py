@@ -56,7 +56,7 @@ _QUANT_DRIFT_REL_TOL = 1e-3
 
 def _format_signal_message(ticker: str, reason: str | None, results: dict) -> str:
     quant_lines = "\n".join(
-        f"  • {d['metric']} {d['operator']} {d['threshold']} → live: {d['value']}"
+        f"  • {d['metric'].replace('_', '\\_')} {d['operator']} {d['threshold']} → live: {d['value']}"
         for d in results.get("quant_detail") or []
         if d.get("passes")
     )
@@ -67,8 +67,8 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
     ]
     catalyst_lines = "\n".join(f"  • {d}" for d in confirmed)
 
-    quant_section = f"📊 *Quant*\n{quant_lines}" if quant_lines else ""
-    catalyst_section = f"🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
+    quant_section = f"\n📊 *Quant*\n{quant_lines}" if quant_lines else ""
+    catalyst_section = f"\n🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
 
     text = textwrap.dedent(f"""\
     🟢 Signal firing: *{ticker}*
