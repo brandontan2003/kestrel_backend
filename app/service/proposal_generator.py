@@ -19,6 +19,7 @@ carries two kinds of key:
 """
 from __future__ import annotations
 
+import textwrap
 from datetime import datetime, timezone, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,13 +69,17 @@ def _format_quant_proposal(change: dict) -> str:
     live_line = f"Live value: {live}\n" if live is not None else ""
     rationale_line = f"{rationale}\n" if rationale else ""
 
-    return (f"""
-         💡New proposal for *{ticker}*\n
-         \n
-         {change_line}\n
-         {live_line}\n
-         {rationale_line}\n
-         \n👉 Review → https://kestrel-rose.vercel.app/proposals""")
+    return textwrap.dedent(f"""
+         💡New proposal for *{ticker}*
+         
+         {change_line}
+         
+         {live_line}
+         
+         {rationale_line}
+         
+         👉 Review → https://kestrel-rose.vercel.app/proposals
+    """).strip()
 
 
 def _format_catalyst_proposal(change: dict) -> str:
@@ -92,12 +97,15 @@ def _format_catalyst_proposal(change: dict) -> str:
 
     rationale_line = f"{rationale}\n" if rationale else ""
 
-    return (f"""
-         💡New proposal for *{ticker}*\n
-         \n
-         {change_line}\n
-         {rationale_line}\n
-         \n👉 Review → https://kestrel-rose.vercel.app/proposals""")
+    return textwrap.dedent(f"""
+         💡New proposal for *{ticker}*
+         
+         {change_line}
+         
+         {rationale_line}
+         
+         👉 Review → https://kestrel-rose.vercel.app/proposals
+    """).strip()
 
 
 class ProposalGenerator:
