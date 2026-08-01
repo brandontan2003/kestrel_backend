@@ -85,6 +85,35 @@ def quant_detail(quant_conditions: list[QuantCondition], quant_results: list[dic
     ]
 
 
+def quant_history_summary(evaluations) -> dict[str, dict]:
+    """Compress past evaluations' `quant_detail` into per-condition stats for
+    the proposal reviewer: {condition_id: {"sweeps", "resolved", "min", "max"}}.
+
+    This is what lets the reviewer say "resolved 0/10 — never resolves" or
+    "range 18.7–19.4, nowhere near the threshold" from facts instead of a
+    single reading. Tolerant of old rows without `quant_detail` (pre-enrichment
+    sweeps just don't count toward the stats).
+    """
+    stats: dict[str, dict] = {}
+    for ev in evaluations:
+        results = ev.results if isinstance(ev.results, dict) else {}
+        for d in results.get("quant_detail") or []:
+            if not isinstance(d, dict):
+                continue
+            cid = d.get("quant_condition_id")
+            if not cid:
+                continue
+            s = stats.setdefault(cid, {"sweeps": 0, "resolved": 0, "min": None, "max": None})
+            s["sweeps"] += 1
+            value = d.get("value")
+            if value is None:
+                continue
+            s["resolved"] += 1
+            s["min"] = value if s["min"] is None else min(s["min"], value)
+            s["max"] = value if s["max"] is None else max(s["max"], value)
+    return stats
+
+
 def catalyst_defs_for_classify(catalysts: list[Catalyst]) -> list[dict]:
     """The `catalysts` arg for `llm.classify_batch` — only id + description."""
     return [{"id": c.catalyst_id, "description": c.description or ""} for c in catalysts]
