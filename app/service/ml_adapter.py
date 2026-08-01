@@ -64,6 +64,17 @@ def build_thesis_dict(thesis: Theses, quant_conditions: list[QuantCondition],
     }
 
 
+def catalyst_detail(catalysts: list[Catalyst], catalyst_states: dict[str, str]) -> list[dict]:
+    return [
+        {
+            "catalyst_id": c.catalyst_id,
+            "description": c.description,
+            "state": catalyst_states.get(c.catalyst_id, _DEFAULT_CATALYST_STATE),
+        }
+        for c in catalysts
+    ]
+
+
 def quant_detail(quant_conditions: list[QuantCondition], quant_results: list[dict]) -> list[dict]:
     """Per-condition breakdown to persist alongside the evaluation.
 
