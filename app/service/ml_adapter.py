@@ -72,6 +72,7 @@ def catalyst_detail(catalysts: list[Catalyst], catalyst_states: dict[str, str]) 
             "state": catalyst_states.get(c.catalyst_id, _DEFAULT_CATALYST_STATE),
         }
         for c in catalysts
+        if catalyst_states.get(c.catalyst_id) == CatalystState.CONFIRMED.value
     ]
 
 
