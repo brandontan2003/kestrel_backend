@@ -27,6 +27,7 @@ class QuantProposalRepository:
             select(QuantProposal)
             .join(Theses, Theses.theses_id == QuantProposal.theses_id)
             .where(Theses.user_id == user_id)
+            .order_by(QuantProposal.created_at.desc())
         )
         if status:
             base = base.where(QuantProposal.quant_proposal_status == status)

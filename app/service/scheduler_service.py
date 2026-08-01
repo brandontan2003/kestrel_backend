@@ -53,6 +53,27 @@ _QUANT_HISTORY_SWEEPS = 10
 _QUANT_DRIFT_REL_TOL = 1e-3
 
 
+def _format_signal_message(ticker: str, reason: str | None, results: dict) -> str:
+    quant_lines = "\n".join(
+        f"  • {d['metric']} {d['operator']} {d['threshold']} — live: {d['value']}"
+        for d in results.get("quant_detail") or []
+        if d.get("passes")
+    )
+    confirmed = [
+        c["description"]
+        for c in results.get("catalyst_detail") or []
+        if c.get("state") == "confirmed"
+    ]
+    catalyst_lines = "\n".join(f"  • {d}" for d in confirmed)
+
+    text = f"🟢 *Signal firing: {ticker}*\n\n{reason}"
+    if quant_lines:
+        text += f"\n\n📊 *Quant*\n{quant_lines}"
+    if catalyst_lines:
+        text += f"\n\n🔍 *Catalysts confirmed*\n{catalyst_lines}"
+    return text
+
+
 def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list,
                        states_changed: bool) -> bool:
     """True when this sweep gave the proposal reviewer nothing it hasn't already
@@ -219,6 +240,7 @@ class SchedulerService:
         # Enrich (not mutate the vendored evaluator): persist the per-condition
         # values so the UI shows live metric readings instead of "—".
         result["quant_detail"] = ml_adapter.quant_detail(quant_conditions, quant_results)
+        result["catalyst_detail"] = ml_adapter.catalyst_detail(catalyst_rows, catalyst_states)
 
         # Detect a signal that just flipped true, for the notify hook.
         previous = await eval_repo.get_latest_evaluation(theses_id)
@@ -343,7 +365,7 @@ class SchedulerService:
             )
             alert = await alert_repo.create_alert(build_request)
 
-            text = f"🟢 Signal firing: *{ticker}*\n{reason}"
+            text = _format_signal_message(ticker, reason, evaluation.results or {})
             await telegram_service.send_notification_on_telegram(alert, chat_id, text, user_id)
 
         try:
