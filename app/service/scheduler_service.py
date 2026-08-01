@@ -67,13 +67,19 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
     ]
     catalyst_lines = "\n".join(f"  • {d}" for d in confirmed)
 
-    quant_section = f"\n\n📊 *Quant*\n{quant_lines}" if quant_lines else ""
-    catalyst_section = f"\n\n🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
+    quant_section = f"📊 *Quant*\n{quant_lines}" if quant_lines else ""
+    catalyst_section = f"🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
 
-    return textwrap.dedent(
-        f"""🟢 Signal firing: *{ticker}*
-        {reason}{quant_section}{catalyst_section}
+    text = textwrap.dedent(f"""\
+    🟢 Signal firing: *{ticker}*
+
+    {reason}
+    {quant_section}
+    {catalyst_section}
     """).strip()
+
+    logger.info(f"Telegram Message: {text}")
+    return text
 
 
 def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list,
