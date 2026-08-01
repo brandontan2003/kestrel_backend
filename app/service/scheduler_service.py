@@ -289,7 +289,8 @@ class SchedulerService:
                 [e for e in recent if e.evaluation_id != evaluation_id][:_QUANT_HISTORY_SWEEPS])
 
             generator = ProposalGenerator(session, QuantProposalRepository(session),
-                                          CatalystProposalRepository(session))
+                                          CatalystProposalRepository(session), UserRepository(session),
+                                          AlertRepository(session))
             await generator.generate(
                 theses_id=theses_id,
                 thesis_dict=thesis_dict,
