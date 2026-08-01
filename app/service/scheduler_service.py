@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+import textwrap
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -66,12 +67,13 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
     ]
     catalyst_lines = "\n".join(f"  • {d}" for d in confirmed)
 
-    text = f"🟢 *Signal firing: {ticker}*\n\n{reason}"
-    if quant_lines:
-        text += f"\n\n📊 *Quant*\n{quant_lines}"
-    if catalyst_lines:
-        text += f"\n\n🔍 *Catalysts confirmed*\n{catalyst_lines}"
-    return text
+    quant_section = f"\n\n📊 *Quant*\n{quant_lines}" if quant_lines else ""
+    catalyst_section = f"\n\n🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""
+
+    return textwrap.dedent(
+        f"""🟢 Signal firing: *{ticker}*
+        {reason}{quant_section}{catalyst_section}
+    """).strip()
 
 
 def _nothing_new_since(previous: Evaluation | None, result: dict, articles: list,
