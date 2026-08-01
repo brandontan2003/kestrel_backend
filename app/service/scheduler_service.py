@@ -56,7 +56,7 @@ _QUANT_DRIFT_REL_TOL = 1e-3
 
 def _format_signal_message(ticker: str, reason: str | None, results: dict) -> str:
     quant_lines = "\n".join(
-        f"  • {d['metric']} {d['operator']} {d['threshold']} — live: {d['value']}"
+        f"  • {d['metric']} {d['operator']} {d['threshold']} - live: {d['value']}"
         for d in results.get("quant_detail") or []
         if d.get("passes")
     )
@@ -78,7 +78,7 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
     {catalyst_section}
     """).strip()
 
-    logger.info("text: %r", text)
+    logger.info("telegram text: %r", text)
     return text
 
 
@@ -373,7 +373,6 @@ class SchedulerService:
             )
             alert = await alert_repo.create_alert(build_request)
 
-            logger.info("results: %r", evaluation.results)
             text = _format_signal_message(ticker, reason, evaluation.results or {})
             await telegram_service.send_notification_on_telegram(alert, chat_id, text, user_id)
 
