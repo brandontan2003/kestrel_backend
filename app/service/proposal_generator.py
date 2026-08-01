@@ -19,6 +19,10 @@ carries two kinds of key:
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.logger import logger
 from app.repository.catalyst_proposal_repository import CatalystProposalRepository
 from app.repository.quant_proposal_repository import QuantProposalRepository
@@ -31,6 +35,11 @@ from pipeline import proposals
 # the condition could only ever evaluate to "incomplete".
 FETCHABLE_METRICS = tuple(quant_service.METRIC_MAP)
 
+# How long a rejection keeps the same suggestion out of the queue. Without this
+# the reviewer, seeing the same unchanged thesis and the same still-in-window
+# article, would re-queue a suggestion the user already said no to — every sweep.
+REJECTED_SUPPRESSION_DAYS = 30
+
 _ACTION_TO_TYPE = {
     "add": ProposalTypeEnum.ADD,
     "update": ProposalTypeEnum.UPDATE,
@@ -39,13 +48,18 @@ _ACTION_TO_TYPE = {
 
 
 class ProposalGenerator:
-    def __init__(self, quant_proposal_repo: QuantProposalRepository,
+    def __init__(self, session: AsyncSession, quant_proposal_repo: QuantProposalRepository,
                  catalyst_proposal_repo: CatalystProposalRepository):
+        # The session is the sweep's own — held only to open SAVEPOINTs around
+        # each persist, so one bad proposal row can't poison the transaction
+        # that's already carrying the sweep's evaluation.
+        self._session = session
         self._quant_repo = quant_proposal_repo
         self._catalyst_repo = catalyst_proposal_repo
 
     async def generate(self, *, theses_id: str, thesis_dict: dict, evaluation: dict, evaluation_id: str,
-                       catalyst_states: dict[str, str], articles: list | None = None) -> int:
+                       catalyst_states: dict[str, str], articles: list | None = None,
+                       quant_history: dict[str, dict] | None = None) -> int:
         """Review one swept thesis and persist whatever survives as PENDING rows.
 
         Args:
@@ -54,6 +68,8 @@ class ProposalGenerator:
             evaluation_id: the row just persisted — every proposal is provenanced
                 back to the sweep that motivated it (`source_evaluation_id`).
             catalyst_states / articles: the same values the sweep judged on.
+            quant_history: per-condition sweep-history stats
+                (`ml_adapter.quant_history_summary`), threaded to the reviewer.
 
         Returns:
             How many proposals were created. Never raises — a thesis whose review
@@ -65,22 +81,33 @@ class ProposalGenerator:
             catalyst_states=catalyst_states,
             articles=articles or [],
             metrics=FETCHABLE_METRICS,
+            quant_history=quant_history,
         )
         if not suggestions:
             return 0
 
-        pending_quant = await self._quant_repo.get_pending_by_theses_id(theses_id)
-        pending_catalyst = await self._catalyst_repo.get_pending_by_theses_id(theses_id)
+        # The dedup set is pending rows PLUS recent rejections: a suggestion the
+        # user already declined is suppressed until the rejection ages out, not
+        # re-queued the moment they clear it.
+        rejected_since = datetime.now(timezone.utc) - timedelta(days=REJECTED_SUPPRESSION_DAYS)
+        known_quant = (await self._quant_repo.get_pending_by_theses_id(theses_id)
+                       + await self._quant_repo.get_recently_rejected_by_theses_id(theses_id, rejected_since))
+        known_catalyst = (await self._catalyst_repo.get_pending_by_theses_id(theses_id)
+                          + await self._catalyst_repo.get_recently_rejected_by_theses_id(theses_id, rejected_since))
 
         created = 0
         for s in suggestions:
             try:
-                if s.target == "quant":
-                    made = await self._persist_quant(theses_id, s, thesis_dict, evaluation,
-                                                     evaluation_id, pending_quant)
-                else:
-                    made = await self._persist_catalyst(theses_id, s, thesis_dict,
-                                                        evaluation_id, pending_catalyst)
+                # SAVEPOINT per proposal: a failed flush rolls back this row
+                # alone, instead of poisoning the session and taking the sweep's
+                # evaluation down with it at commit time.
+                async with self._session.begin_nested():
+                    if s.target == "quant":
+                        made = await self._persist_quant(theses_id, s, thesis_dict, evaluation,
+                                                         evaluation_id, known_quant)
+                    else:
+                        made = await self._persist_catalyst(theses_id, s, thesis_dict,
+                                                            evaluation_id, known_catalyst)
                 created += int(made)
             except Exception:
                 # One malformed suggestion must not cost the thesis its evaluation:
@@ -111,7 +138,8 @@ class ProposalGenerator:
                        "suggestedValue": s.value}
 
         if _duplicate_quant(s, change, pending):
-            logger.info("thesis %s: skipping duplicate quant %s already pending", theses_id, s.action)
+            logger.info("thesis %s: skipping quant %s — already pending or recently rejected",
+                        theses_id, s.action)
             return False
 
         await self._quant_repo.create_quant_proposal(
@@ -146,7 +174,8 @@ class ProposalGenerator:
             change |= {"description": s.description}
 
         if _duplicate_catalyst(s, pending):
-            logger.info("thesis %s: skipping duplicate catalyst %s already pending", theses_id, s.action)
+            logger.info("thesis %s: skipping catalyst %s — already pending or recently rejected",
+                        theses_id, s.action)
             return False
 
         await self._catalyst_repo.create_catalyst_proposal(
@@ -165,6 +194,8 @@ class ProposalGenerator:
 # --------------------------------------------------------------------------- #
 # Dedup — the reviewer sees the same unchanged thesis every sweep, so without
 # this an unapproved suggestion would be re-queued hourly until the user acted.
+# `pending` is really pending + recently-rejected: the same matchers implement
+# both "don't double-queue" and "don't nag about what they already declined".
 # --------------------------------------------------------------------------- #
 def _duplicate_quant(s, change: dict, pending: list) -> bool:
     kind = _ACTION_TO_TYPE[s.action]

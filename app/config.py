@@ -40,9 +40,11 @@ class Settings(BaseSettings):
     # Quant metrics cache TTL — fundamentals move slowly; caching cuts yfinance
     # calls and gives per-cycle ticker dedup for free. 0 disables the cache.
     QUANT_CACHE_TTL_SECONDS: int = 3600
-    # Agent-suggested thesis edits (the proposals queue). One extra LLM call per
-    # NON-firing thesis per sweep — a firing thesis is never reviewed. Off by
-    # default so an unattended sweep can't spend tokens nobody asked for.
+    # Agent-suggested thesis edits (the proposals queue). Up to one extra LLM
+    # call per thesis per sweep — firing theses included (fresh news can still
+    # surface a new catalyst), but the scheduler's change-gate skips the call
+    # when nothing moved since the last sweep. Off by default so an unattended
+    # sweep can't spend tokens nobody asked for.
     PROPOSALS_ENABLED: bool = False
 
     TELEGRAM_BOT_TOKEN: str = ""

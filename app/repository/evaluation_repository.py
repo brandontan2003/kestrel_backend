@@ -31,6 +31,18 @@ class EvaluationRepository:
             select(Evaluation).where(Evaluation.theses_id == theses_id).order_by(Evaluation.created_at.desc()).limit(1))
         return result.scalar_one_or_none()
 
+    async def get_recent_evaluations(self, theses_id: str, limit: int = 10) -> list[Evaluation]:
+        """The last `limit` evaluations, newest first — the proposal reviewer's
+        sweep history, so 'this metric never resolves' is a count over real
+        sweeps instead of a guess from one."""
+        result = await self._db.execute(
+            select(Evaluation)
+            .where(Evaluation.theses_id == theses_id)
+            .order_by(Evaluation.created_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
     async def get_latest_evaluations_by_user_id(self, theses_ids: list[str]) -> dict[str, Evaluation]:
         if not theses_ids:
             return {}

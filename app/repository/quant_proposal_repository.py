@@ -68,6 +68,22 @@ class QuantProposalRepository:
         )
         return list(result.scalars().all())
 
+    async def get_recently_rejected_by_theses_id(self, theses_id: str,
+                                                 since: datetime) -> list[QuantProposal]:
+        """Rejected proposals resolved on/after `since` — the generator's
+        suppression set, so a suggestion the user already said no to isn't
+        re-queued every sweep until its source article ages out. Includes
+        supersede-rejections; harmless, since after an approval the row changed
+        and an identical re-proposal dies on the noop guard anyway."""
+        result = await self._db.execute(
+            select(QuantProposal).where(
+                QuantProposal.theses_id == theses_id,
+                QuantProposal.quant_proposal_status == ProposalStatusEnum.REJECTED,
+                QuantProposal.resolved_at >= since,
+            )
+        )
+        return list(result.scalars().all())
+
     async def get_pending_updates_for_condition(self, quant_condition_id: str,
                                                 exclude_proposal_id: str) -> list[QuantProposal]:
         """Return all other pending UPDATE proposals for the same quant condition."""
