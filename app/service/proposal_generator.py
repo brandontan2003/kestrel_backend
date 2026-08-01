@@ -71,13 +71,13 @@ def _format_quant_proposal(change: dict) -> str:
 
     return textwrap.dedent(f"""
          💡New proposal for *{ticker}*
-         
+
          {change_line}
-         
+
          {live_line}
-         
+
          {rationale_line}
-         
+
          👉 Review → https://kestrel-rose.vercel.app/proposals
     """).strip()
 
@@ -99,11 +99,11 @@ def _format_catalyst_proposal(change: dict) -> str:
 
     return textwrap.dedent(f"""
          💡New proposal for *{ticker}*
-         
+
          {change_line}
-         
+
          {rationale_line}
-         
+
          👉 Review → https://kestrel-rose.vercel.app/proposals
     """).strip()
 
