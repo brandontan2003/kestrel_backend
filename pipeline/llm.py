@@ -31,6 +31,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.core.logger import logger
+from pipeline import usage as _usage
 from pipeline.news import Article
 
 PASS1_MODEL = "gpt-5.4-mini"  # cheap relevance filter (~$0.75/$4.50 per MTok)
@@ -157,7 +158,7 @@ def _format_article(index: int, a: Article) -> str:
 # --------------------------------------------------------------------------- #
 # Pass 2 — confirmation (gpt-5.4), plus the code-enforced guards.
 # --------------------------------------------------------------------------- #
-def pass2_confirm(article: Article, catalyst: dict) -> CatalystVerdict:
+def pass2_confirm(article: Article, catalyst: dict, model: str | None = None) -> CatalystVerdict:
     """Judge one (article, catalyst) pair and apply the anti-hallucination guards."""
     body = article.summary if article.has_body else "(no body text — headline only)"
     user_msg = (
@@ -168,7 +169,7 @@ def pass2_confirm(article: Article, catalyst: dict) -> CatalystVerdict:
     )
 
     raw = _call(
-        model=PASS2_MODEL,
+        model=model or PASS2_MODEL,
         system=_prompt("pass2_confirmation"),
         user=user_msg,
         schema=_Pass2Output,
@@ -258,6 +259,7 @@ def _call(*, model: str, system: str, user: str, schema: type[BaseModel],
         prompt_cache_key=f"kestrel:{model}",
         **kwargs,
     )
+    _usage.record(model, getattr(completion, "usage", None))
     message = completion.choices[0].message
     if message.parsed is None:
         raise RuntimeError(
