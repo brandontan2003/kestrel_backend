@@ -212,5 +212,3 @@ marimo/_lsp/
 __marimo__/
 
 .DS_Store
-
-eval/results.json
