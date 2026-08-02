@@ -35,7 +35,7 @@ class BaselineVerdict(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0, default=0.5)
 
 
-def classify_single_call(article: Article, catalyst: dict) -> BaselineVerdict:
+def classify_single_call(article: Article, catalyst: dict, model: str | None = None) -> BaselineVerdict:
     """One naive call, verdict trusted as-is (this is the point — no guards)."""
     body = article.summary if article.has_body else "(headline only)"
     user = (
@@ -43,7 +43,7 @@ def classify_single_call(article: Article, catalyst: dict) -> BaselineVerdict:
         f"ARTICLE:\nHEADLINE: {article.headline}\nBODY: {body}"
     )
     return _call(
-        model=PASS2_MODEL,
+        model=model or PASS2_MODEL,
         system=_BASELINE_SYSTEM,
         user=user,
         schema=BaselineVerdict,

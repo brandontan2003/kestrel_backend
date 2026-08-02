@@ -1,0 +1,171 @@
+{
+  "ticker": "ACME",
+  "catalysts": [
+    {
+      "id": "c_gpu",
+      "description": "ACME launches its next-generation data-center GPU"
+    },
+    {
+      "id": "c_buyback",
+      "description": "ACME announces a new share buyback"
+    },
+    {
+      "id": "c_acq",
+      "description": "ACME acquires a smaller chip-design company"
+    }
+  ],
+  "articles": [
+    {
+      "headline": "ACME unveils next-gen data-center GPU at its developer conference",
+      "summary": "ACME announced its next-generation data-center GPU at the event, saying it will ship to customers this quarter.",
+      "source": "company press release",
+      "published_at": "2026-06-02",
+      "relevant_catalyst_ids": [
+        "c_gpu"
+      ]
+    },
+    {
+      "headline": "Report: ACME could reveal a new data-center chip soon",
+      "summary": "Analysts speculated ACME may unveil a new data-center accelerator in the coming months, though nothing is confirmed.",
+      "source": "analyst note",
+      "published_at": "2026-05-10",
+      "relevant_catalyst_ids": [
+        "c_gpu"
+      ]
+    },
+    {
+      "headline": "ACME board authorizes $10 billion share buyback",
+      "summary": "ACME's board approved a new $10 billion share repurchase program, effective immediately, alongside quarterly results.",
+      "source": "company earnings release",
+      "published_at": "2026-05-02",
+      "relevant_catalyst_ids": [
+        "c_buyback"
+      ]
+    },
+    {
+      "headline": "ACME in talks to acquire chip-design startup, sources say",
+      "summary": "People familiar with the matter said ACME is in early talks to acquire a smaller chip-design firm; no deal has been signed.",
+      "source": "Bloomberg (sources)",
+      "published_at": "2026-04-18",
+      "relevant_catalyst_ids": [
+        "c_acq"
+      ]
+    },
+    {
+      "headline": "ACME completes acquisition of chip-design firm Volt",
+      "summary": "ACME said it has completed its acquisition of Volt, a small chip-design company, which is now a wholly owned subsidiary.",
+      "source": "company press release",
+      "published_at": "2026-06-20",
+      "relevant_catalyst_ids": [
+        "c_acq"
+      ]
+    },
+    {
+      "headline": "ACME raises dividend and expands repurchase program",
+      "summary": "ACME raised its dividend and expanded its share repurchase authorization, the company said in its results.",
+      "source": "company earnings release",
+      "published_at": "2026-05-02",
+      "relevant_catalyst_ids": [
+        "c_buyback"
+      ]
+    },
+    {
+      "headline": "Federal Reserve holds interest rates steady",
+      "summary": "The Federal Reserve left its benchmark interest rate unchanged, citing mixed inflation data.",
+      "source": "Reuters",
+      "published_at": "2026-05-01",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Semiconductor stocks rally on continued AI demand",
+      "summary": "Chip stocks broadly rose as investors bet on sustained demand for AI infrastructure.",
+      "source": "CNBC",
+      "published_at": "2026-05-06",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "ACME shares hit a 52-week high",
+      "summary": "ACME shares reached a 52-week high in Tuesday trading amid a broad market rally.",
+      "source": "MarketWatch",
+      "published_at": "2026-05-07",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Analyst raises ACME price target to $220",
+      "summary": "An analyst raised the price target on ACME, citing strong end-market demand, and kept a buy rating.",
+      "source": "analyst note",
+      "published_at": "2026-05-08",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Rival chipmaker posts record quarterly revenue",
+      "summary": "A competing chipmaker reported record revenue, beating estimates on data-center strength.",
+      "source": "Reuters",
+      "published_at": "2026-05-09",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "ACME CEO discusses long-term vision at industry summit",
+      "summary": "At an industry summit, ACME's chief executive spoke about the company's multi-year strategy and AI ambitions in general terms.",
+      "source": "conference coverage",
+      "published_at": "2026-05-12",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Global chip supply chains show signs of easing",
+      "summary": "Industry data suggested semiconductor supply constraints continued to ease across the sector.",
+      "source": "industry report",
+      "published_at": "2026-05-14",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "ACME named to a sustainability index",
+      "summary": "ACME was added to a widely tracked sustainability index in its latest reconstitution.",
+      "source": "press wire",
+      "published_at": "2026-05-15",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Tech sector leads market higher",
+      "summary": "Technology shares led major indexes higher, with chipmakers among the gainers.",
+      "source": "AP",
+      "published_at": "2026-05-16",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "ACME opens a new engineering office",
+      "summary": "ACME said it opened a new engineering office and plans to hire across hardware and software teams.",
+      "source": "company blog",
+      "published_at": "2026-05-19",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Options activity picks up in ACME ahead of earnings",
+      "summary": "Traders noted elevated options volume in ACME in the run-up to its quarterly report.",
+      "source": "markets blog",
+      "published_at": "2026-04-28",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Industry group publishes new interconnect standard",
+      "summary": "A semiconductor industry group published an updated interconnect standard for accelerators.",
+      "source": "trade press",
+      "published_at": "2026-05-21",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "ACME partners on a university research grant",
+      "summary": "ACME said it is funding a university research grant focused on chip-cooling techniques.",
+      "source": "company blog",
+      "published_at": "2026-05-22",
+      "relevant_catalyst_ids": []
+    },
+    {
+      "headline": "Currency swings weigh on multinational tech earnings",
+      "summary": "Analysts said currency movements could pressure reported earnings for large multinational technology firms.",
+      "source": "Reuters",
+      "published_at": "2026-05-23",
+      "relevant_catalyst_ids": []
+    }
+  ]
+}
