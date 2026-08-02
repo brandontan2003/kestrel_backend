@@ -54,6 +54,18 @@ _QUANT_HISTORY_SWEEPS = 10
 _QUANT_DRIFT_REL_TOL = 1e-3
 
 
+def _escape_md(text: str, *, limit: int = 90) -> str:
+    """Neutralize Telegram legacy-Markdown syntax in text we didn't author.
+
+    Headlines come from news sources, so they can contain any of these; an
+    unbalanced `*` or `[` makes Telegram reject the whole message.
+    """
+    clean = " ".join(text.split())[:limit]
+    for ch in "_*[]`":
+        clean = clean.replace(ch, f"\\{ch}")
+    return clean
+
+
 def _format_signal_message(ticker: str, reason: str | None, results: dict) -> str:
     quant_lines = "\n".join(
         f"  • {d['metric'].replace('_', '\\_')} {d['operator']} {d['threshold']} → live: {d['value']}"
@@ -61,11 +73,19 @@ def _format_signal_message(ticker: str, reason: str | None, results: dict) -> st
         if d.get("passes")
     )
     confirmed = [
-        c["description"]
-        for c in results.get("catalyst_detail") or []
+        c for c in results.get("catalyst_detail") or []
         if c.get("state") == "confirmed"
     ]
-    catalyst_lines = "\n".join(f"  • {d}" for d in confirmed)
+    # The source article rides along as a Markdown link — a confirmation the
+    # reader can't check is just an assertion. Link text is the headline (or a
+    # fallback), so an underscore in the URL can't break Markdown parsing.
+    catalyst_lines = "\n".join(
+        f"  • {c['description']}" + (
+            f"\n    [{_escape_md(c.get('source_article_headline') or 'source')}]({c['source_article_url']})"
+            if c.get("source_article_url") else ""
+        )
+        for c in confirmed
+    )
 
     quant_section = f"\n📊 *Quant*\n{quant_lines}" if quant_lines else ""
     catalyst_section = f"\n🔍 *Catalysts confirmed*\n{catalyst_lines}" if catalyst_lines else ""

@@ -76,6 +76,13 @@ class CatalystVerdict(_Pass2Output):
     survive persistence intact.
     """
     article_id: str
+    # The citable source. `article_id` is a hash — useful for dedup, useless to
+    # a reader — so the URL + headline are stamped alongside it, giving a
+    # state change the same "here's the article" provenance a proposal gets
+    # from `source_article_url`. Optional so evidence written before this
+    # existed still deserializes.
+    article_url: str | None = None
+    article_headline: str | None = None
     prompt_version: str
     classified_at: str  # ISO-8601 UTC, stamped at guard time
     guard_note: str | None = None  # set when a guard rewrote the verdict
@@ -197,6 +204,8 @@ def _apply_guards(raw: _Pass2Output, article: Article) -> CatalystVerdict:
     return CatalystVerdict(
         **{**raw.model_dump(), "proposed_state": state},
         article_id=article.id,
+        article_url=article.url,
+        article_headline=article.headline,
         prompt_version=prompt_version("pass2_confirmation"),
         classified_at=datetime.now(timezone.utc).isoformat(),
         guard_note=note,

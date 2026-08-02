@@ -64,16 +64,43 @@ def build_thesis_dict(thesis: Theses, quant_conditions: list[QuantCondition],
     }
 
 
+def state_evidence(catalyst: Catalyst, state: str) -> dict | None:
+    """The verdict that put the catalyst in `state` — newest evidence entry whose
+    `proposed_state` matches it.
+
+    Not simply the newest entry: evidence records every verdict, including later
+    `no_change` ones from unrelated articles, so the plain newest entry would
+    cite the wrong story as the source of a confirmation. Falls back to the
+    newest entry when nothing matches (legacy rows, or a hand-set state).
+    """
+    evidence = catalyst.evidence or []
+    if not isinstance(evidence, list):
+        return None
+    entries = [e for e in evidence if isinstance(e, dict)]
+    if not entries:
+        return None
+    matching = [e for e in entries if e.get("proposed_state") == state]
+    pool = matching or entries
+    return max(pool, key=lambda e: e.get("classified_at") or "")
+
+
 def catalyst_detail(catalysts: list[Catalyst], catalyst_states: dict[str, str]) -> list[dict]:
-    return [
-        {
+    detail = []
+    for c in catalysts:
+        state = catalyst_states.get(c.catalyst_id)
+        if state != CatalystState.CONFIRMED.value:
+            continue
+        # The article behind the confirmation, so an alert can cite its source
+        # the same way a proposal cites `source_article_url`.
+        evidence = state_evidence(c, state) or {}
+        detail.append({
             "catalyst_id": c.catalyst_id,
             "description": c.description,
-            "state": catalyst_states.get(c.catalyst_id, _DEFAULT_CATALYST_STATE),
-        }
-        for c in catalysts
-        if catalyst_states.get(c.catalyst_id) == CatalystState.CONFIRMED.value
-    ]
+            "state": state,
+            "source_article_url": evidence.get("article_url"),
+            "source_article_headline": evidence.get("article_headline"),
+        })
+    return detail
 
 
 def quant_detail(quant_conditions: list[QuantCondition], quant_results: list[dict]) -> list[dict]:
