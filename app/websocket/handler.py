@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 async def handle_message(user_id: str, websocket: WebSocket) -> None:
     try:
-        data = await websocket.receive_json()
+        await websocket.receive_json()
     except json.JSONDecodeError:
         await websocket.send_text(json.dumps({"error": "invalid JSON"}))
         return
