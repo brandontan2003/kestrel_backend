@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-08-02T06:45:06.563606+00:00",
+  "tier_a": {
+    "n": 16,
+    "state_machine": {
+      "system": "state_machine",
+      "n": 16,
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "tn": 7,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "boolean_baseline": {
+      "system": "boolean_baseline",
+      "n": 16,
+      "tp": 9,
+      "fp": 6,
+      "fn": 0,
+      "tn": 1,
+      "precision": 0.6,
+      "recall": 1.0,
+      "f1": 0.75,
+      "accuracy": 0.625
+    },
+    "disagreements": [
+      {
+        "case": "jetblue_spirit_signed_then_blocked",
+        "gold": false,
+        "state_machine": false,
+        "boolean": true
+      },
+      {
+        "case": "tapestry_capri_signed_then_blocked",
+        "gold": false,
+        "state_machine": false,
+        "boolean": true
+      },
+      {
+        "case": "kroger_albertsons_signed_then_blocked",
+        "gold": false,
+        "state_machine": false,
+        "boolean": true
+      },
+      {
+        "case": "pfizer_danuglipron_advanced_then_dropped",
+        "gold": false,
+        "state_machine": false,
+        "boolean": true
+      },
+      {
+        "case": "apple_perplexity_speculative_confirm_then_denied",
+        "gold": false,
+        "state_machine": false,
+        "boolean": true
+      },
+      {
+        "case": "intel_18a_speculative_confirm_only",
+        "gold": false,
+        "state_machine": false,
+        "boolean": true
+      }
+    ]
+  },
+  "tier_b": {
+    "n": 18,
+    "full_pipeline": {
+      "system": "full_pipeline",
+      "n": 18,
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "tn": 12,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "mean_latency_s": 2.204
+    },
+    "single_call_baseline": {
+      "system": "single_call_baseline",
+      "n": 18,
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "tn": 12,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "mean_latency_s": 1.392
+    },
+    "note": "full-pipeline hallucination_rate is 0.0 by construction (verbatim guard)."
+  }
+}
