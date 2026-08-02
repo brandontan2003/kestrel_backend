@@ -14,7 +14,6 @@ from dataclasses import dataclass
 
 import pytest
 
-from pipeline import catalysts
 from pipeline.catalysts import CatalystProposal, CatalystState, apply, is_met, initial_state
 
 

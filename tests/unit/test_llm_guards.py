@@ -11,8 +11,6 @@ quotes text that appears verbatim in the source."
 
 from datetime import datetime, timezone
 
-import pytest
-
 from pipeline.llm import _apply_guards, _Pass2Output, quote_in_article
 from pipeline.news import Article
 
@@ -135,4 +133,4 @@ def test_valid_invalidation_with_body_survives():
 def test_guard_stamps_provenance():
     out = _apply_guards(verdict("confirmed", "announced the Rubin GPU for data centers"), article())
     assert out.prompt_version  # sha-derived, non-empty
-    assert out.classified_at   # ISO timestamp stamped at guard time
+    assert out.classified_at  # ISO timestamp stamped at guard time
