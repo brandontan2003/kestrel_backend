@@ -16,7 +16,7 @@ This separation is deliberate: each experiment answers a different question, and
 
 ## Reproducing the evaluation
 
-**Evaluated commit:** `<INSERT_COMMIT_SHA>`
+**Evaluated commit:** `d5bd984fc5f5d5415738217cc340036af07f1bff`
 
 All reported results in the submission were generated from this commit.
 
