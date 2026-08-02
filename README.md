@@ -188,16 +188,16 @@ docker-compose down -v     # full reset (drops DB volume)
 
 ```bash
 # All tests
-pytest
+python -m pytest
 
 # Unit tests only (no DB required)
-pytest tests/unit/
+python -m pytest tests/unit/
 
 # Integration tests (uses aiosqlite in-memory DB)
-pytest tests/integration/
+python -m pytest tests/integration/
 
 # Specific file
-pytest tests/unit/test_theses_service.py -v
+python -m pytest tests/unit/test_theses_service.py -v
 ```
 
 ---
