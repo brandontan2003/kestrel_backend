@@ -5,10 +5,10 @@ single well-prompted call?* — with a measured baseline comparison.
 
 ## Two tiers
 
-| Tier | Isolates | Needs API key? | Run |
-| --- | --- | --- | --- |
-| **A** | the **state machine** (source credibility + the four-state ladder) | no — deterministic | `python -m eval.run_eval` |
-| **B** | the **guards + two-pass classifier** vs a single call | yes (`OPENAI_API_KEY`) | `python -m eval.run_eval --classify` |
+| Tier  | Isolates                                                           | Needs API key?         | Run                                  |
+|-------|--------------------------------------------------------------------|------------------------|--------------------------------------|
+| **A** | the **state machine** (source credibility + the four-state ladder) | no — deterministic     | `python -m eval.run_eval`            |
+| **B** | the **guards + two-pass classifier** vs a single call              | yes (`OPENAI_API_KEY`) | `python -m eval.run_eval --classify` |
 
 Both compare against the naive thing you'd build first:
 

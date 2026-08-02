@@ -198,6 +198,10 @@ python -m pytest tests/integration/
 
 # Specific file
 python -m pytest tests/unit/test_theses_service.py -v
+
+# Run ML Evaluation
+OPENAI_API_KEY="your_api_key" python -m eval.run_eval --classify
+
 ```
 
 ---
