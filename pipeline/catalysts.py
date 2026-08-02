@@ -1,4 +1,4 @@
-"""Catalyst state machine (ml_plan.md §3).
+"""Catalyst state machine.
 
 A catalyst is not a boolean — news contradicts itself ("contract confirmed"
 Tuesday, "contract delayed" Thursday), so each catalyst carries a state:
@@ -48,10 +48,10 @@ class VerdictLike(Protocol):
 @dataclass(frozen=True)
 class Transition:
     """Result of applying one verdict. `note` explains the outcome for the UI /
-    the evaluator's `blocked_by` line (ml_plan.md §4) — e.g. why a `confirmed`
+    the evaluator's `blocked_by` line — e.g. why a `confirmed`
     proposal was capped at `rumored`.
 
-    Refines the §7 contract (`-> (new_state, changed)`) with a human note; flag
+    Refines the contract (`-> (new_state, changed)`) with a human note; flag
     to Brandon before the contract is locked. `.as_tuple()` gives the plain
     shape if he'd rather keep it minimal.
     """
@@ -72,7 +72,7 @@ def is_met(state: CatalystState | str) -> bool:
     """Does this catalyst count as satisfied for signal purposes?
 
     Only `confirmed` counts. `rumored` is not enough; `invalidated` actively
-    fails. The evaluator (§4) uses this when combining catalysts.
+    fails. The evaluator uses this when combining catalysts.
     """
     return CatalystState(state) is CatalystState.CONFIRMED
 
@@ -80,10 +80,10 @@ def is_met(state: CatalystState | str) -> bool:
 def apply(current: CatalystState | str, verdict: VerdictLike) -> Transition:
     """Apply one Pass-2 verdict to a catalyst's current state.
 
-    Rules (ml_plan.md §3):
-      * no_change            -> never moves the state.
+    Rules :
+      * no_change -> never moves the state.
       * confirmed/invalidated require a credible source; speculation is capped
-        at `rumored` (for a would-be confirm) or ignored (for a would-be invalidate).
+        at `rumored` (for a would-be confirmation) or ignored (for a would-be invalidate).
       * the positive ladder unconfirmed < rumored < confirmed never moves *down*
         on a weaker proposal — only `invalidated` (credible) can pull a confirmed
         catalyst back, and only a fresh `confirmed` can revive an invalidated one.
@@ -113,7 +113,7 @@ def apply(current: CatalystState | str, verdict: VerdictLike) -> Transition:
         else:
             return _to(state, CatalystState.CONFIRMED, "confirmed by a credible source")
 
-    # proposed is RUMORED (either directly, or downgraded from a speculative confirm)
+    # proposed is RUMORED (either directly, or downgraded from a speculative confirmation)
     if state is CatalystState.UNCONFIRMED:
         return _to(state, CatalystState.RUMORED, "raised to rumored")
     # A rumor cannot downgrade a confirmation, nor revive an invalidated catalyst.

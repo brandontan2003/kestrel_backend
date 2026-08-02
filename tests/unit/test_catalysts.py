@@ -4,7 +4,7 @@ These are pure: no LLM, no DB, no network. They drive `apply()` with plain
 verdict stubs (the module reads only `proposed_state` + `source_kind` off a
 verdict via a Protocol, exactly so it can be tested this way).
 
-Each test asserts one transition RULE from the docstring / ml_plan.md §3, so a
+Each test asserts one transition RULE from the docstring, so a
 failing test names the exact rule that broke. This suite is also the evidence
 behind the write-up's Approach claims: "speculation is capped at rumored",
 "a rumor never downgrades a confirmation", etc. — every one is a passing test.

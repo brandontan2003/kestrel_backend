@@ -1,4 +1,4 @@
-"""Thesis evaluator (ml_plan.md §4).
+"""Thesis evaluator.
 
 Combines quant condition results + catalyst states into a single signal, under
 the thesis's `all`/`any` combination modes. Pure: no I/O, no LLM.
@@ -11,8 +11,7 @@ The two things that make this more than an AND of booleans:
      dashboard's most common state is "not yet", and showing the reason is what
      makes the agent legible (the whole point of the frontend panel).
 
-Refines the §7 contract output with `ticker` + `status` fields (superset — flag
-to Brandon before locking).
+Refines the contract output with `ticker` + `status` fields
 """
 
 from __future__ import annotations
@@ -35,7 +34,7 @@ def evaluate(thesis: dict, quant_results: list[dict], catalyst_states: dict[str,
     Args:
         thesis: dict with keys `ticker`, `quant_mode` ("all"|"any"),
             `catalyst_mode` ("all"|"any"|"none_required"), `quant_conditions`,
-            `catalysts`. See ml_plan.md §4.
+            `catalysts`.
         quant_results: one dict per quant condition, aligned by position with
             `thesis["quant_conditions"]`. Each: {"value": float|None,
             "passes": bool|None}. `passes is None` == couldn't evaluate.
@@ -43,7 +42,7 @@ def evaluate(thesis: dict, quant_results: list[dict], catalyst_states: dict[str,
             `unconfirmed`.
 
     Returns:
-        The §4 output dict (plus `ticker`/`status`).
+        The output dict (plus `ticker`/`status`).
     """
     ticker = thesis.get("ticker", "?")
 

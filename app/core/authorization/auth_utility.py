@@ -21,7 +21,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
     Refresh token:
     - Long max_age (7 days).
     - Scoped to /api/v1/auth only — browser will NOT send it to /api/v1/theses etc.
-      Minimises the window in which the refresh token is transmitted.
+      Minimizes the window in which the refresh token is transmitted.
     """
     is_prod = settings.ENV != "dev"
 

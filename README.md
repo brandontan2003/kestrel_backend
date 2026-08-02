@@ -13,7 +13,7 @@ Most alerting tools send you a ping when a price hits a number. Kestrel lets you
 Two types of conditions per thesis:
 
 - **Quantitative** — deterministic threshold checks (P/E, P/B, EV/EBITDA, price vs. 200-day MA) pulled from `yfinance`.
-- **Qualitative (catalysts)** — event-based triggers evaluated by a two-pass LLM classifier scanning live news: Haiku filters for relevance, Sonnet confirms and must cite a supporting quote or the result is rejected.
+- **Qualitative (catalysts)** — event-based triggers evaluated by a two-pass LLM classifier scanning live news: gpt-5.4-mini filters for relevance, gpt-5.4 confirms and must cite a supporting quote or the result is rejected.
 
 The system **never trades**. It surfaces signal; you decide.
 
@@ -41,7 +41,7 @@ kestrel-backend/
 │   └── main.py              # App factory, lifespan, middleware, router mount
 ├── pipeline/                # Vendored ML pipeline (news fetch + LLM classifier)
 │   ├── news.py              # Finnhub + yfinance news adapters with dedup
-│   ├── llm.py               # Two-pass classifier (Haiku → Sonnet)
+│   ├── llm.py               # Two-pass classifier (gpt-5.4-mini → gpt-5.4)
 │   ├── evaluator.py         # Quant + catalyst signal aggregation
 │   ├── proposals.py         # LLM-driven thesis change suggestions
 │   ├── catalysts.py

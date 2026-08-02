@@ -83,7 +83,7 @@ class ThesesRepository:
 
     async def get_all_theses_by_user_id(self, user_id: str, page: int, page_size: int) -> tuple[list[Theses], int]:
         offset = (page - 1) * page_size
-        # Exclude soft-deleted theses so they drop off the watchlist after removal.
+        # Exclude soft-deleted thesis so they drop off the watchlist after removal.
         active = (Theses.user_id == user_id) & (Theses.theses_status != ThesesStatusEnum.DELETED)
         count_result = await self._db.execute(select(func.count()).select_from(Theses).where(active))
         total = count_result.scalar_one()

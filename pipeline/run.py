@@ -1,4 +1,4 @@
-"""CLI to exercise the news pipeline — the Phase-0 spike driver (ml_plan.md §2).
+"""CLI to exercise the news pipeline — the Phase-0 spike driver.
 
 Loads .env (for FINNHUB_API_KEY), fetches recent news for one or more tickers,
 and prints the numbers the spike needs to decide the primary source:

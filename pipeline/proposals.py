@@ -12,7 +12,7 @@ no web. The host owns the loop and the persistence; this owns the judgment.
 The guards live HERE, in code, after the model call — the prompt asks, the code
 enforces (the same split as llm.py's anti-hallucination guards):
   guard 1: `target_id` on an update/remove must be a row the thesis actually has.
-  guard 2: a quant `metric` must be one the caller says it can fetch, and the
+  guard 2: a quant `metric` must be one of the caller says it can fetch, and the
            `operator` one the caller can compare — otherwise the condition would
            silently never resolve.
   guard 3: an update that changes nothing is dropped (a proposal the user can
