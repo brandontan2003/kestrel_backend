@@ -1,6 +1,6 @@
 """Turns the ML reviewer's suggestions into pending proposal rows.
 
-This is the missing half of the proposals feature: the tables, the approve/reject
+This is the missing half of the proposals feature: the tables, the approval/reject
 endpoints and the review page all existed, but nothing ever *wrote* a proposal,
 so the queue was permanently empty. The scheduler calls this at the end of each
 sweep, right after the evaluation lands.
@@ -11,7 +11,7 @@ persistence (what a suggestion looks like as a row, and whether it's new).
 
 `proposed_change` is the one JSON column both sides of the feature read, so it
 carries two kinds of key:
-  * the **apply** keys the approve path feeds back into the repos on approval
+  * the **apply** keys the approval path feeds back into the repos on approval
     (`metric`/`operator`/`value`, `state`/`description`);
   * the **display** keys the proposal card renders (`ticker`, `currentValue`,
     `liveValue`, ...) — a proposal has to be legible weeks later, and the row it

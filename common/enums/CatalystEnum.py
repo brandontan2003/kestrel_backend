@@ -1,7 +1,6 @@
 import enum
 
 
-# FIXME -- To check again at a future date
 class CatalystState(str, enum.Enum):
     """The state machine's vocabulary for a single catalyst.
 

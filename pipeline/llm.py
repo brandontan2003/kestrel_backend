@@ -1,4 +1,4 @@
-"""Two-pass catalyst classifier (ml_plan.md §5).
+"""Two-pass catalyst classifier.
 
 Pass 1 (gpt-5.4-mini): cheap relevance filter over a batch of articles —
 drops the ~90% that don't bear on any watched catalyst.
@@ -6,7 +6,7 @@ Pass 2 (gpt-5.4): careful confirmation judgment on each surviving
 (article, catalyst) pair, with a verbatim supporting quote.
 
 The anti-hallucination guards live HERE, in code, after the model call — not
-only in the prompt (ml_plan.md §5):
+only in the prompt:
   guard 1: `supporting_quote` must appear verbatim (case/whitespace-normalized)
            in the article text, or the verdict is downgraded to `no_change`.
   guard 3: a headline-only article (no body text) can propose at most `rumored`.
@@ -14,9 +14,9 @@ only in the prompt (ml_plan.md §5):
   catalysts.py state machine, which reads `source_kind`.)
 
 Prompts live in pipeline/prompts/*.md, versioned in git; every verdict records
-the sha256-derived version of the prompt that produced it (§5).
+the sha256-derived version of the prompt that produced it.
 
-Contract (§7): classify_batch(articles, catalysts) -> list[CatalystVerdict]
+Contract: classify_batch(articles, catalysts) -> list[CatalystVerdict]
 """
 
 from __future__ import annotations
@@ -114,7 +114,7 @@ def classify_batch(articles: list[Article], catalysts: list[dict]) -> list[Catal
 
 
 # --------------------------------------------------------------------------- #
-# Pass 1 — relevance (Haiku).
+# Pass 1 — relevance (gpt-5.4-mini).
 # --------------------------------------------------------------------------- #
 def pass1_relevance(articles: list[Article], catalysts: list[dict]) -> list[tuple[Article, dict]]:
     """Return the (article, catalyst) pairs worth a careful Pass-2 look."""
@@ -155,7 +155,7 @@ def _format_article(index: int, a: Article) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Pass 2 — confirmation (Sonnet), plus the code-enforced guards.
+# Pass 2 — confirmation (gpt-5.4), plus the code-enforced guards.
 # --------------------------------------------------------------------------- #
 def pass2_confirm(article: Article, catalyst: dict) -> CatalystVerdict:
     """Judge one (article, catalyst) pair and apply the anti-hallucination guards."""
@@ -225,7 +225,7 @@ def _prompt(name: str) -> str:
 @lru_cache
 def prompt_version(name: str) -> str:
     """Short content hash of a prompt file — persisted with every verdict so
-    metric shifts can be attributed to prompt changes (§5)."""
+    metric shifts can be attributed to prompt changes ."""
     return hashlib.sha256(_prompt(name).encode("utf-8")).hexdigest()[:12]
 
 

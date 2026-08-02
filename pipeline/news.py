@@ -5,7 +5,7 @@ shape so the rest of the pipeline never has to know where an article came from.
 The public entry point is `fetch()`, which can pull from one or several sources
 and merge the results.
 
-Contract (ml_plan.md §7):  fetch(ticker, since) -> list[Article]
+Contract: fetch(ticker, since) -> list[Article]
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ class Article:
         """True if there's quotable text beyond the headline.
 
         Pass 2 uses this: a headline-only article can never yield a
-        `confirmed` verdict (ml_plan.md §5, guard 3).
+        `confirmed` verdict.
         """
         return bool(self.summary and self.summary.strip())
 
@@ -68,7 +68,7 @@ def fetch(
         until:   optional upper bound (inclusive). The eval backfill uses this
                  to request day-sized windows: Finnhub caps each response at
                  ~250 items, so wide historical queries get silently truncated
-                 unless the request window itself is kept small (ml_plan.md §2).
+                 unless the request window itself is kept small.
 
     Returns:
         Articles sorted oldest-first, deduped by URL across all sources. Empty
@@ -147,7 +147,7 @@ def _dedup(articles: Iterable[Article]) -> list[Article]:
 
     NOTE: dedup is by URL only. The same story from two different sources has
     two different URLs, so cross-source near-duplicates are NOT collapsed. That
-    is an accepted non-goal (ml_plan.md §9); revisit with fuzzy title matching
+    is an accepted non-goal; revisit with fuzzy title matching
     only if merged feeds get noisy.
     """
     seen: set[str] = set()

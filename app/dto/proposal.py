@@ -11,7 +11,7 @@ class RejectProposalRequest(BaseDTO):
     rejection_reason: str = Field(..., min_length=1)
 
 
-# Theses proposals
+# Thesis proposals
 class RetrieveThesesProposalResponse(BaseDTO):
     theses_proposal_id: str
     user_id: str
