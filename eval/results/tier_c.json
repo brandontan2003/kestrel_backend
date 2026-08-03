@@ -1,0 +1,66 @@
+{
+  "articles": 20,
+  "catalysts": 3,
+  "total_pairs": 60,
+  "model": "default",
+  "pass1": {
+    "calls": 1,
+    "kept_pairs": 6,
+    "filter_rate": 0.9,
+    "recall": 1.0,
+    "precision": 1.0,
+    "usage": {
+      "calls": 1,
+      "input_tokens": 1354,
+      "cached_input_tokens": 0,
+      "output_tokens": 439,
+      "tokens_per_call": 1793.0,
+      "cost_usd": 0.002991,
+      "cost_per_call_usd": 0.002991
+    }
+  },
+  "two_pass": {
+    "pass2_calls": 6,
+    "calls_per_article": 0.35,
+    "total_cost_usd": 0.040986,
+    "total_tokens": 12581,
+    "pass1_usage": {
+      "calls": 1,
+      "input_tokens": 1354,
+      "cached_input_tokens": 0,
+      "output_tokens": 439,
+      "tokens_per_call": 1793.0,
+      "cost_usd": 0.002991,
+      "cost_per_call_usd": 0.002991
+    },
+    "pass2_usage": {
+      "calls": 6,
+      "input_tokens": 9906,
+      "cached_input_tokens": 0,
+      "output_tokens": 882,
+      "tokens_per_call": 1798.0,
+      "cost_usd": 0.037995,
+      "cost_per_call_usd": 0.006333
+    }
+  },
+  "naive_pass2_only": {
+    "pass2_calls": 60,
+    "total_cost_usd": 0.371713,
+    "total_tokens": 106955,
+    "usage": {
+      "calls": 60,
+      "input_tokens": 98609,
+      "cached_input_tokens": 0,
+      "output_tokens": 8346,
+      "tokens_per_call": 1782.6,
+      "cost_usd": 0.371713,
+      "cost_per_call_usd": 0.006195
+    }
+  },
+  "savings": {
+    "cost_pct": 0.8897,
+    "token_pct": 0.8824,
+    "pass2_calls_pct": 0.9
+  },
+  "note": "Pass-1 recall < 1.0 means the filter dropped a genuinely relevant pair (a false negative that Pass 2 never sees). Cost $ depends on pipeline.usage.PRICING."
+}

@@ -304,9 +304,35 @@ def main():
               f"{_fmt_pct(sv['cost_pct'])} cost, {_fmt_pct(sv['token_pct'])} tokens, "
               f"{_fmt_pct(sv['pass2_calls_pct'])} of Pass-2 calls avoided")
 
-    out = _HERE / "results.json"
-    out.write_text(json.dumps(results, indent=2))
-    print(f"\nWrote {out}")
+    # Persist without clobbering other tiers. Each run writes the tiers it
+    # produced to eval/results/<tier>.json, and merges into a summary so a
+    # later `--stream`-only run can't erase an earlier `--classify` result.
+    results_dir = _HERE / "results"
+    results_dir.mkdir(exist_ok=True)
+    written = []
+    if "tier_a" in results:
+        (results_dir / "tier_a.json").write_text(json.dumps(results["tier_a"], indent=2))
+        written.append("tier_a.json")
+    if "tier_b" in results:
+        tag = (results["tier_b"].get("model") or "frontier").replace("/", "_")
+        fname = f"tier_b_{tag}.json"
+        (results_dir / fname).write_text(json.dumps(results["tier_b"], indent=2))
+        written.append(fname)
+    if "tier_c" in results:
+        (results_dir / "tier_c.json").write_text(json.dumps(results["tier_c"], indent=2))
+        written.append("tier_c.json")
+
+    summary_path = results_dir / "summary.json"
+    summary = {}
+    if summary_path.exists():
+        try:
+            summary = json.loads(summary_path.read_text())
+        except Exception:
+            summary = {}
+    summary.update(results)  # only overwrites the tiers that ran this invocation
+    summary["generated_at"] = results["generated_at"]
+    summary_path.write_text(json.dumps(summary, indent=2))
+    print(f"\nWrote {', '.join(written)} + summary.json to {results_dir}/")
 
 
 if __name__ == "__main__":

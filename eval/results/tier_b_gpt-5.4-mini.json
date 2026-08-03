@@ -1,0 +1,51 @@
+{
+  "n": 18,
+  "model": "gpt-5.4-mini",
+  "full_pipeline": {
+    "system": "full_pipeline",
+    "n": 18,
+    "tp": 6,
+    "fp": 0,
+    "fn": 0,
+    "tn": 12,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "hallucination_rate": 0.0,
+    "mean_latency_s": 1.943,
+    "usage": {
+      "calls": 18,
+      "input_tokens": 29751,
+      "cached_input_tokens": 21760,
+      "output_tokens": 2722,
+      "tokens_per_call": 1804.1,
+      "cost_usd": 0.019874,
+      "cost_per_call_usd": 0.001104
+    }
+  },
+  "single_call_baseline": {
+    "system": "single_call_baseline",
+    "n": 18,
+    "tp": 6,
+    "fp": 0,
+    "fn": 0,
+    "tn": 12,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "hallucination_rate": 0.0,
+    "mean_latency_s": 1.215,
+    "usage": {
+      "calls": 18,
+      "input_tokens": 3260,
+      "cached_input_tokens": 0,
+      "output_tokens": 1123,
+      "tokens_per_call": 243.5,
+      "cost_usd": 0.007499,
+      "cost_per_call_usd": 0.000417
+    }
+  },
+  "note": "full-pipeline hallucination_rate is 0.0 by construction (verbatim guard). Cost is confirmation-pass only (not the full two-pass pipeline); token counts are exact, dollar cost depends on pipeline.usage.PRICING."
+}
