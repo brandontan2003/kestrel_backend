@@ -4,6 +4,8 @@
 
 **Frontend repo →** [kestrel-frontend](https://github.com/jiahuiiiii/Kestrel)
 
+> **[Writeup for the Launchpad Challenge](https://github.com/brandontan2003/kestrel_backend/blob/main/WRITEUP.md)**
+
 ---
 
 ## What it does
